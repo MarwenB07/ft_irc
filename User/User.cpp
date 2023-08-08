@@ -1,8 +1,29 @@
 #include "User.hpp"
 
-User::User(std::string nickname, std::string username, int clientSocket) : _nickname(nickname), _username(username), _clientSocket(clientSocket)
+User::User(int clientSocket) : _clientSocket(clientSocket)
 {
-	_status = false;
+	_nickStatus = false;
+	_passwordStatus = false;
+	_userStatus = false;
+	_nickname = "NULL_NICKNAME";
+	_username = "NULL_USERNAME";
+	//std::cout << "User = socket[" << clientSocket << "]" << std::endl; 
+}
+
+void User::CompleteUser(std::string nickname, std::string username)
+{
+	_nickname = nickname;
+	_username = username;
+}
+
+void User::MakeTrue(std::string statusName)
+{
+	if (statusName == "PASS")
+		_passwordStatus = true;
+	else if (statusName == "NICK")
+		_nickStatus = true;
+	else if (statusName == "USER")
+		_userStatus = true;
 }
 
 int User::getClientSocket(void) const
@@ -10,9 +31,19 @@ int User::getClientSocket(void) const
 	return (_clientSocket);
 }
 
-bool User::getStatus(void) const
+bool User::getPasswordStatus(void) const
 {
-	return (_status);
+	return (_passwordStatus);
+}
+
+bool User::getNickStatus(void) const
+{
+	return (_nickStatus);
+}
+
+bool User::getUserStatus(void) const
+{
+	return (_userStatus);
 }
 
 std::string User::getNickname(void) const

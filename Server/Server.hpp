@@ -11,20 +11,52 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <poll.h>
+#include <map>
+#include <vector>
+#include <thread>
+#include <arpa/inet.h>
+#include "../User/User.hpp"
 
 // define //
 
 # define NB_CLIENTS 10
 
-# define WELCOME "Welcome to ft_irc server sheeeeeesh\n"
+# define HELP_MESSAGE "\nIn order :\n\n\
+\033[1;32mPASS\033[0;0m \033[1;31m<password>\033[0;0m\n\
+\033[1;32mNICK\033[0;0m \033[1;31m<nickname>\033[0;0m\n\
+\033[1;32mUSER\033[0;0m \033[1;31m<username> 0 * <realname>\033[0;0m\n\n"
 
-# define HELP_MESSAGE "In order to login in the server\n\nPASS <password> : have an acces to the server\nNICK <nickname> \
-(less than 9 character and 3 minimal only) : create your nickname \
-(the other client can see your nickname)\nUSER <USERNAME> (less than \
-20 character and 3 minimal only) : create your username \
-(the other client can't see your username)\n"
+// good //
+
+# define START	  "\033[1;35m[IRC SERVER]\033[0;0m : Waiting connexion ..."
+# define WELCOME  "\033[1;31mWelcome to ft_irc server\033[0;0m\n"
+# define GoodPass "\033[1;32mGood Password\033[0;0m\n"
+# define GoodNick "\033[1;32mGood Nickname\033[0;0m\n"
+# define GoodUser "\033[1;32mGood Username\033[0;0m\n"
+
+// bad //
+
+# define ERR_NICKLENGTH "\033[1;31mInvalide length for your nickname. (to allow 3 - 9 character)\033[0;0m\n"
+# define ERR_NICK       "\033[1;31mInvalide nickname.\033[0;0m\n"
+# define ERR_NICKSAME   "\033[1;31mThis nickname already exist, please retry with another nickname.\033[0;0m\n"
+# define ERR_LENGTH     "\033[1;31mInvalide length.\n"
+# define ERR_USELESS    "\033[1;31mInvalide message, you can use 'HELP' to have many information.\033[0;0m\n"
+
+// Colors //
+
+#define GREY   "\033[1;30m"
+#define RED    "\033[1;31m"
+#define GREEN  "\033[1;32m"
+#define YELLOW "\033[1;33m"
+#define BLUE   "\033[1;36m"
+#define PURPLE "\033[1;35m"
+#define WHITE  "\033[1;37m"
+#define END	   "\033[0;0m"
 
 // class //
+
+class User;
 
 class Server
 {
@@ -39,6 +71,14 @@ class Server
 		// private function //
 
 		int tryPassword(std::string message);
+		int tryNick(std::string message, std::map<int, User> user, int socket);
+		int tryUser(std::string message);
+		
+		// semi-usefull //
+
+		void cleanBuffer(char *buffer, int len);
+		std::string makeIdenticalChat(char *buffer, std::string name);
+		std::string Print(std::string string) const;
 		
 	public:
 		// constructor //

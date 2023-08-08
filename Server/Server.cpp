@@ -2,18 +2,6 @@
 
 /* constructor */
 
-// Global variable to keep track of the SIGINT signal
-volatile sig_atomic_t sigintReceived = 0;
-
-// Signal handler for SIGINT (Ctrl+C)
-static void Anti_Ctrl_C(int signum)
-{
-    if (signum == SIGINT)
-    {
-        sigintReceived = 1;
-    }
-}
-
 // costructor //
 
 Server::Server(int port, std::string password) : _port(port), _password(password)
@@ -37,17 +25,74 @@ int Server::tryPassword(std::string message)
 	return (-1);
 }
 
+// check if my client send a good nickname //
+
+int Server::tryNick(std::string message, std::map<int, User> user, int socket)
+{
+	std::string nickname;
+	std::string none_first = "_0123456789";
+	std::string unauthorised = " \t\r\f\v";
+
+	std::map<int, User>::iterator it;
+
+	// note : verifier les non-ascii ( #$@^&* etc ... ) //
+
+	if (message.find("NICK") == 0 && message.length() >= 8)
+	{
+		nickname = message.c_str() + 5;
+		if (nickname.length() > 9)
+		{
+			send(socket, Print(ERR_NICKLENGTH).c_str(), Print(ERR_NICKLENGTH).length() + 1, 0);
+			return (2);
+		}	
+
+		for (int i = 0; none_first.c_str()[i]; i++)
+		{
+			if (nickname.find(none_first.c_str()[i]) < 1)
+			{
+				send(socket, Print(ERR_NICK).c_str(), Print(ERR_NICK).length() + 1, 0);
+				return (2);
+			}
+		}
+		for (int i = 0; unauthorised.c_str()[i]; i++)
+		{
+			if (nickname.find(unauthorised.c_str()[i]) <= nickname.length())
+			{
+				send(socket, Print(ERR_NICK).c_str(), Print(ERR_NICK).length() + 1, 0);
+				return (2);
+			}
+		}
+		for (it = user.begin(); it != user.end() ;++it)
+		{
+			if (it->second.getNickname() != "NULL_NICKNAME" && it->second.getNickname() == nickname && it->second.getClientSocket() != socket)
+			{
+				send(socket, Print(ERR_NICKSAME).c_str(), Print(ERR_NICKSAME).length() + 1, 0);
+				return (2);
+			}
+		}
+		return (1);
+	}
+	return (-1);
+}
+
+// check if my client send a good username //
+
+int Server::tryUser(std::string message)
+{
+	return (1);
+}
+
 // init my server //
 
 int Server::InitServer( void )
 {
-	// en gros je pense aue les truc du genre client socket etc ce sera dans une class User donc pas maintenant //
-
 	struct sockaddr_in serverAddr = {0};
 
 	socklen_t serverAddrLen = sizeof(serverAddr);
 
 	_servSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+	int on = 1;
 
 	if (_servSocket < 0)
 	{
@@ -55,7 +100,7 @@ int Server::InitServer( void )
         return (-1);
 	}
 
-	if (fcntl(_servSocket, 0, O_NONBLOCK) < 0)
+	if (fcntl(_servSocket, F_SETFL, O_NONBLOCK) < 0)
 	{
 		std::cerr << "Fcntl Error" << std::endl;
 		close(_servSocket);
@@ -75,14 +120,14 @@ int Server::InitServer( void )
         return (-1);
 	}
 
-	if (listen(getSocket(), NB_CLIENTS) < 0)
+	if (listen(getSocket(), serverAddr.sin_port) < 0)
 	{
 		std::cerr << "Listen Error" << std::endl;
 		close(_servSocket);
         return (-1);
 	}
 
-	std::cout << "start ..." << std::endl; 
+	std::cout << START << std::endl; 
 
 	return (0);
 }
@@ -91,111 +136,165 @@ int Server::InitServer( void )
 
 int Server::StartServer( void )
 {
-
 	fd_set readfds;
 
 	FD_ZERO(&readfds);
-    FD_SET(getSocket(), &readfds);
-
-	struct timeval timeout;
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
+    FD_SET(_servSocket, &readfds);
 
 	struct sockaddr_in clientAddr = {0};
 	socklen_t clientAddrLen = sizeof(clientAddr);
 
 	std::string message = WELCOME;
+	std::string newChat;
 
-	ssize_t sent;
-
+	int cfd;
+	int sent;
 	int Connexion = -1;
+	int maxSocket = NB_CLIENTS;
+	int TmpClientSocket;
+	int returner = 0;
 
-	while (1)
+	char buffer[512];
+
+	std::vector<int> clients;
+	std::map<int, User> users;
+	while (true) 
 	{
-		fd_set currentfds = readfds;
+		signal(SIGPIPE, SIG_IGN);
 
-		char chat[512];
+        fd_set currentfd = readfds;
 
-		int multipleActivity = select(getSocket() + 1, &currentfds, NULL, NULL, &timeout);
-
-		if (multipleActivity < 0)
+        if (select(maxSocket + 1, &currentfd, NULL, NULL, NULL) < 0) 
 		{
-			std::cerr << "MultipleActivity Error" << std::endl;
-			close(_servSocket);
-   			return (-1);
-		}
+            std::cerr << "Error in select.\n";
+            return -1;
+        }
 
-		// ctrl c fais comme si on le kick //
-		if (sigintReceived)
-			break;
-
-		std::cout << multipleActivity << std::endl;
-
-		if (multipleActivity == 0)
-			continue;
-
-		int cfd = accept(_servSocket, (struct sockaddr*)&clientAddr, &clientAddrLen);
-		_clientSocket = cfd;
-
-		if (cfd < 0)
+        // Check for activity on the server socket (new client connection)
+        if (FD_ISSET(_servSocket, &currentfd)) 
 		{
-			std::cerr << "Accept Error" << std::endl;
-			close(_servSocket);
-   			return (-1);
-		}
-		else
+            clientAddrLen = sizeof(clientAddr);
+            cfd = accept(_servSocket, (struct sockaddr*)&clientAddr, &clientAddrLen);
+
+            std::cout << "Connection established with client : socket[" << cfd << "]" << std::endl;
+
+            FD_SET(cfd, &readfds);
+
+            if (cfd > maxSocket)
+                maxSocket = cfd;
+
+			users.insert(std::make_pair(cfd, User(cfd)));
+
+            std::string welcomeMessage = WELCOME;
+            send(cfd, welcomeMessage.c_str(), welcomeMessage.length() + 1, 0);
+            clients.push_back(cfd);
+        }
+		
+        for (std::vector<int>::iterator it = clients.begin(); it != clients.end(); ++it)
 		{
-			std::cout << "a connexion at " << time(NULL) - getTime() << " seconds detected by clientSocket [" << getClientSocket() << "]" << std::endl;
-			_nbClient += 1;
-			sent = send(cfd, message.c_str(), message.length(), 0);
-		}
+    		int clientSocket = *it;
+			std::map<int, User>::iterator itUser = users.find(clientSocket);
+            if (FD_ISSET(clientSocket, &currentfd)) 
+			{
+                int bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+				returner = tryNick(buffer, users, clientSocket);
+				message = buffer;
+                if (bytesRead <= 0) 
+				{
+					if (bytesRead < 0)
+                		std::cerr << "Error in recv from client: " << strerror(errno) << std::endl;
+                    close(clientSocket);
+                    FD_CLR(clientSocket, &readfds);
+                    clients.erase(std::remove(clients.begin(), clients.end(), clientSocket), clients.end());
+					break;
+                }
+				else if (bytesRead > 0 && (!itUser->second.getPasswordStatus() || !itUser->second.getNickStatus() || !itUser->second.getUserStatus()))
+				{
+					if (bytesRead > 512)
+					{
+						send(clientSocket, Print(ERR_LENGTH).c_str(), Print(ERR_LENGTH).length() + 1, 0);
+						continue;
+					}
+					else if (tryPassword(buffer) == 1 && itUser->second.getPasswordStatus() == false)
+					{
+						itUser->second.MakeTrue("PASS");
+						send(clientSocket, Print(GoodPass).c_str(), Print(GoodPass).length() + 1, 0);
+					}
+					else if (returner > 0 && itUser->second.getPasswordStatus() == true && itUser->second.getNickStatus() == false)
+					{
+						if (returner == 1)
+						{
+							itUser->second.MakeTrue("NICK");
+							itUser->second.CompleteUser(message.c_str() + 5, itUser->second.getUsername());
+							send(clientSocket, Print(GoodNick).c_str(), Print(GoodNick).length() + 1, 0);
+						}
+					}
+					else if (tryUser(buffer) == 1 && itUser->second.getUserStatus() == false && itUser->second.getPasswordStatus() == true && itUser->second.getNickStatus() == true)
+					{
+						// pas fait encore
 
-		// faire un tableau 
-
-		Connexion = recv(cfd, chat, 512, MSG_PEEK);
-		if (strlen(chat) > 512)
-			sent = send(cfd, (getLengthError()).c_str(), (getLengthError()).length(), 0);
-		if (Connexion == 0)
-		{
-			std::cout << "At " << time(NULL) - getTime() << " seconds clientSocket [" << getClientSocket() << "] was deconnected ..." << std::endl;
-			_nbClient -= 1;
-			close(_clientSocket);
-			FD_CLR(_clientSocket, &readfds);
-		}
-		message = chat;
-		if (message == "HELP\n")
-			sent = send(cfd, (getHelp()).c_str(), (getHelp()).length(), 0);
-		else if (tryPassword(message) == 1)
-			std::cout << "Good password" << std::endl;
-		else
-			sent = send(cfd, (getUselessError()).c_str(), (getUselessError()).length(), 0);
-	}
-
+						itUser->second.MakeTrue("USER");
+						itUser->second.CompleteUser(itUser->second.getNickname(), "Par defaut");
+						send(clientSocket, Print(GoodUser).c_str(), Print(GoodUser).length() + 1, 0);
+					}
+					else if (message == "HELP\n")
+						send(clientSocket, Print(HELP_MESSAGE).c_str(), Print(HELP_MESSAGE).length() + 1, 0);
+					else
+						send(clientSocket, Print(ERR_USELESS).c_str(), Print(ERR_USELESS).length() + 1, 0);
+				}
+				else 
+				{
+                    buffer[bytesRead] = '\0';
+					if (bytesRead > 512)
+					{
+						send(clientSocket, Print(ERR_LENGTH).c_str(), Print(ERR_LENGTH).length() + 1, 0);
+						continue;
+					}
+					itUser = users.find(clientSocket);
+					newChat = makeIdenticalChat(buffer, itUser->second.getNickname());
+                    for (std::vector<int>::iterator it = clients.begin(); it != clients.end(); ++it)
+					{
+    					TmpClientSocket = *it;
+                        if (TmpClientSocket != clientSocket)
+                            send(TmpClientSocket, newChat.c_str(), strlen(newChat.c_str()), 0);
+                    }
+                }
+				cleanBuffer(buffer, 512);
+            }
+        }
+    }
 	close(_servSocket);
 	return (0);
 }
 
-/* message */
-
-// print all cmd (passord, login) //
-
-std::string Server::getHelp(void) const
-{
-	return (HELP_MESSAGE);
-}
+/* semi-usefull */
 
 // print error message when the client send a message with more character than 512 //
 
-std::string Server::getLengthError(void) const
+std::string Server::Print(std::string string) const
 {
-	return ("INVALIDE LENGTH\n");
+	return (string);
 }
 
-// print error message when the client send a useless message //
+// clean my buffer for recv //
 
-std::string Server::getUselessError(void) const
+void Server::cleanBuffer(char *buffer, int len)
 {
-	return ("INVALIDE MESSAGE, you can use 'HELP' to have many information\n");
+	for (int i = 0; i < len; i++)
+		buffer[i] = '\0';
+}
+
+// strjoin to reconize the client //
+
+std::string Server::makeIdenticalChat(char *buffer, std::string name)
+{
+	std::string namedChat;
+
+	namedChat = name.erase(name.length() - 1, name.length());
+	namedChat.append(" : ");
+	namedChat.append(buffer);
+
+	return (namedChat);
 }
 
 /* geter */

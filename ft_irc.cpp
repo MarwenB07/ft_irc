@@ -10,7 +10,7 @@ static int port_check(char *port)
 			return (-1);
 	}
 
-	int true_port = std::stoi(port);
+	int true_port = std::atoi(port);
 
 	if (true_port > 65536)
 		return (-1);

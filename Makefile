@@ -13,7 +13,7 @@ CXXFLAGS = #-Wall -Wextra -Werror -std=c++98
 SRC =	ft_irc.cpp \
 		Server/Server.cpp \
 		User/User.cpp
-
+#
 OBJS = $(SRC:.cpp=.o)
 
 # ---- COMPILATION ---- #
