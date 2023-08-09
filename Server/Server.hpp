@@ -25,7 +25,7 @@
 # define HELP_MESSAGE "\nIn order :\n\n\
 \033[1;32mPASS\033[0;0m \033[1;31m<password>\033[0;0m\n\
 \033[1;32mNICK\033[0;0m \033[1;31m<nickname>\033[0;0m\n\
-\033[1;32mUSER\033[0;0m \033[1;31m<username> 0 * <realname>\033[0;0m\n\n"
+\033[1;32mUSER\033[0;0m \033[1;31m<username> 0 * :<realname>\033[0;0m \033[1;32mExemple : USER guest 0 * :Bart Simpson\033[0;0m\n\n"
 
 // good //
 
@@ -37,9 +37,14 @@
 
 // bad //
 
+# define ERR_PASS "\033[1;31mBad password.\033[0;0m\n"
+
 # define ERR_NICKLENGTH "\033[1;31mInvalide length for your nickname. (to allow 3 - 9 character)\033[0;0m\n"
 # define ERR_NICK       "\033[1;31mInvalide nickname.\033[0;0m\n"
 # define ERR_NICKSAME   "\033[1;31mThis nickname already exist, please retry with another nickname.\033[0;0m\n"
+
+# define ERR_USER       "\033[1;31mInvalide username.\033[0;0m\n"
+
 # define ERR_LENGTH     "\033[1;31mInvalide length.\n"
 # define ERR_USELESS    "\033[1;31mInvalide message, you can use 'HELP' to have many information.\033[0;0m\n"
 
@@ -67,12 +72,17 @@ class Server
 		int _servSocket;
 		int _clientSocket;
 		int _nbClient;
+		std::vector<std::string> _splited;
+		std::map<int, User> _users;
+		std::vector<int> _clients;
+		int _bytesRead;
 
 		// private function //
 
-		int tryPassword(std::string message);
-		int tryNick(std::string message, std::map<int, User> user, int socket);
-		int tryUser(std::string message);
+		int tryPassword(std::vector<std::string> str, int socket);
+		int tryNick(std::vector<std::string> str, std::map<int, User> user, int socket);
+		int tryUser(std::vector<std::string> str, int socket);
+		std::vector<std::string> s_split(std::string str);
 		
 		// semi-usefull //
 

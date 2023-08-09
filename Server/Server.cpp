@@ -16,69 +16,160 @@ Server::Server(int port, std::string password) : _port(port), _password(password
 
 // check if my client send the good password //
 
-int Server::tryPassword(std::string message)
+int Server::tryPassword(std::vector<std::string> str, int socket)
 {
-	if (message.find("PASS") <= 512 && message.find(getPassword()) <= 512
-		&& message.find(getPassword()) > message.find("PASS")
-		&& message.length() == getPassword().length() + 6)
-		return (1);
-	return (-1);
+	if (str.size() != 2)
+		return (-1);
+
+	std::vector<std::string>::iterator it = str.begin();
+
+	if (*it != "PASS")
+		return (-1);
+	++it;
+	if (*it != getPassword())
+	{
+		send(socket, Print(ERR_PASS).c_str(), Print(ERR_PASS).length() + 1, 0);
+		return (2);
+	}
+	return (1);
 }
 
 // check if my client send a good nickname //
 
-int Server::tryNick(std::string message, std::map<int, User> user, int socket)
+int Server::tryNick(std::vector<std::string> str, std::map<int, User> user, int socket)
 {
 	std::string nickname;
 	std::string none_first = "_0123456789";
 	std::string unauthorised = " \t\r\f\v";
-
+	
+	if (str.size() != 2)
+		return (-1);
+	
+	std::vector<std::string>::iterator sit = str.begin();
+	
 	std::map<int, User>::iterator it;
-
+	
+	if (*sit != "NICK")
+		return (-1);
+	
+	++sit;
+	nickname = *sit;
+	
 	// note : verifier les non-ascii ( #$@^&* etc ... ) //
-
-	if (message.find("NICK") == 0 && message.length() >= 8)
+	
+	if (nickname.length() > 9 || nickname.length() < 3)
 	{
-		nickname = message.c_str() + 5;
-		if (nickname.length() > 9)
-		{
-			send(socket, Print(ERR_NICKLENGTH).c_str(), Print(ERR_NICKLENGTH).length() + 1, 0);
-			return (2);
-		}	
-
-		for (int i = 0; none_first.c_str()[i]; i++)
-		{
-			if (nickname.find(none_first.c_str()[i]) < 1)
-			{
-				send(socket, Print(ERR_NICK).c_str(), Print(ERR_NICK).length() + 1, 0);
-				return (2);
-			}
-		}
-		for (int i = 0; unauthorised.c_str()[i]; i++)
-		{
-			if (nickname.find(unauthorised.c_str()[i]) <= nickname.length())
-			{
-				send(socket, Print(ERR_NICK).c_str(), Print(ERR_NICK).length() + 1, 0);
-				return (2);
-			}
-		}
-		for (it = user.begin(); it != user.end() ;++it)
-		{
-			if (it->second.getNickname() != "NULL_NICKNAME" && it->second.getNickname() == nickname && it->second.getClientSocket() != socket)
-			{
-				send(socket, Print(ERR_NICKSAME).c_str(), Print(ERR_NICKSAME).length() + 1, 0);
-				return (2);
-			}
-		}
-		return (1);
+		send(socket, Print(ERR_NICKLENGTH).c_str(), Print(ERR_NICKLENGTH).length() + 1, 0);
+		return (2);
 	}
-	return (-1);
+
+	for (int i = 0; none_first.c_str()[i]; i++)
+	{
+		if (nickname.find(none_first.c_str()[i]) < 1)
+		{
+			send(socket, Print(ERR_NICK).c_str(), Print(ERR_NICK).length() + 1, 0);
+			return (2);
+		}
+	}
+
+	for (int i = 0; unauthorised.c_str()[i]; i++)
+	{
+		if (nickname.find(unauthorised.c_str()[i]) <= nickname.length())
+		{
+			send(socket, Print(ERR_NICK).c_str(), Print(ERR_NICK).length() + 1, 0);
+			return (2);
+		}
+	}
+
+	for (it = user.begin(); it != user.end() ;++it)
+	{
+		if (it->second.getNickname() != "NULL_NICKNAME" && it->second.getNickname() == nickname && it->second.getClientSocket() != socket)
+		{
+			send(socket, Print(ERR_NICKSAME).c_str(), Print(ERR_NICKSAME).length() + 1, 0);
+			return (2);
+		}
+	}
+	return (1);
 }
 
 // check if my client send a good username //
 
-int Server::tryUser(std::string message)
+int Server::tryUser(std::vector<std::string> str, int socket)
 {
+	std::string none_first = "_0123456789";
+	std::string unauthorised = " \t\r\f\v";
+	std::string username;
+
+
+	if (str.size() != 6)
+		return (-1);
+
+	std::vector<std::string>::iterator it = str.begin();
+
+	if (*it != "USER")
+		return (-1);
+	++it;
+
+	username = *it;
+	for (int i = 0; none_first.c_str()[i]; i++)
+	{
+		if (username.find(none_first.c_str()[i]) < 1)
+		{
+			send(socket, Print(ERR_USER).c_str(), Print(ERR_USER).length() + 1, 0);
+			return (2);
+		}
+	}
+
+	for (int i = 0; unauthorised.c_str()[i]; i++)
+	{
+		if (username.find(unauthorised.c_str()[i]) != std::string::npos)
+		{
+			send(socket, Print(ERR_USER).c_str(), Print(ERR_USER).length() + 1, 0);
+			return (2);
+		}
+	}
+
+	++it;
+	if (*it != "0")
+		return (-1);
+
+	++it;
+	if (*it != "*")
+		return (-1);
+
+	++it;
+	username = *it;
+	
+	for (int i = 0; i <= username.length(); i++)
+	{
+		for (int i = 'a'; i <= 'z'; i++)
+		{
+			if (username.find(i, 1) != std::string::npos || username.find(i - 32, 1) != std::string::npos)
+				break;
+			else if (i == 'z')
+			{
+				send(socket, Print(ERR_USER).c_str(), Print(ERR_USER).length() + 1, 0);
+				return (2);
+			}
+		}
+	}
+
+	++it;
+	username = *it;
+
+	for (int i = 0; i <= username.length(); i++)
+	{
+		for (int i = 'a'; i <= 'z'; i++)
+		{
+			if (username.find(i) != std::string::npos || username.find(i - 32) != std::string::npos)
+				break;
+			else if (i == 'z')
+			{
+				send(socket, Print(ERR_USER).c_str(), Print(ERR_USER).length() + 1, 0);
+				return (2);
+			}
+		}
+	}
 	return (1);
 }
 
@@ -156,8 +247,6 @@ int Server::StartServer( void )
 
 	char buffer[512];
 
-	std::vector<int> clients;
-	std::map<int, User> users;
 	while (true) 
 	{
 		signal(SIGPIPE, SIG_IGN);
@@ -183,42 +272,51 @@ int Server::StartServer( void )
             if (cfd > maxSocket)
                 maxSocket = cfd;
 
-			users.insert(std::make_pair(cfd, User(cfd)));
+			_users.insert(std::make_pair(cfd, User(cfd)));
 
             std::string welcomeMessage = WELCOME;
             send(cfd, welcomeMessage.c_str(), welcomeMessage.length() + 1, 0);
-            clients.push_back(cfd);
+            _clients.push_back(cfd);
         }
 		
-        for (std::vector<int>::iterator it = clients.begin(); it != clients.end(); ++it)
+        for (std::vector<int>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 		{
     		int clientSocket = *it;
-			std::map<int, User>::iterator itUser = users.find(clientSocket);
+			std::map<int, User>::iterator itUser = _users.find(clientSocket);
             if (FD_ISSET(clientSocket, &currentfd)) 
 			{
-                int bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
-				returner = tryNick(buffer, users, clientSocket);
+                _bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
 				message = buffer;
-                if (bytesRead <= 0) 
+				_splited = s_split(message);
+				if (itUser->second.getPasswordStatus() == false)
+					returner = tryPassword(_splited, clientSocket);
+				else if (itUser->second.getNickStatus() == false)
+					returner = tryNick(_splited, _users, clientSocket);
+				else
+					returner = tryUser(_splited, clientSocket);
+                if (_bytesRead <= 0) 
 				{
-					if (bytesRead < 0)
+					if (_bytesRead < 0)
                 		std::cerr << "Error in recv from client: " << strerror(errno) << std::endl;
                     close(clientSocket);
                     FD_CLR(clientSocket, &readfds);
-                    clients.erase(std::remove(clients.begin(), clients.end(), clientSocket), clients.end());
+                    _clients.erase(std::remove(_clients.begin(), _clients.end(), clientSocket), _clients.end());
 					break;
                 }
-				else if (bytesRead > 0 && (!itUser->second.getPasswordStatus() || !itUser->second.getNickStatus() || !itUser->second.getUserStatus()))
+				else if (_bytesRead > 0 && (!itUser->second.getPasswordStatus() || !itUser->second.getNickStatus() || !itUser->second.getUserStatus()))
 				{
-					if (bytesRead > 512)
+					if (_bytesRead > 512)
 					{
 						send(clientSocket, Print(ERR_LENGTH).c_str(), Print(ERR_LENGTH).length() + 1, 0);
 						continue;
 					}
-					else if (tryPassword(buffer) == 1 && itUser->second.getPasswordStatus() == false)
+					else if (returner > 0 && itUser->second.getPasswordStatus() == false)
 					{
-						itUser->second.MakeTrue("PASS");
-						send(clientSocket, Print(GoodPass).c_str(), Print(GoodPass).length() + 1, 0);
+						if (returner == 1)
+						{
+							itUser->second.MakeTrue("PASS");
+							send(clientSocket, Print(GoodPass).c_str(), Print(GoodPass).length() + 1, 0);
+						}
 					}
 					else if (returner > 0 && itUser->second.getPasswordStatus() == true && itUser->second.getNickStatus() == false)
 					{
@@ -229,30 +327,34 @@ int Server::StartServer( void )
 							send(clientSocket, Print(GoodNick).c_str(), Print(GoodNick).length() + 1, 0);
 						}
 					}
-					else if (tryUser(buffer) == 1 && itUser->second.getUserStatus() == false && itUser->second.getPasswordStatus() == true && itUser->second.getNickStatus() == true)
+					else if (returner > 0 && itUser->second.getUserStatus() == false && itUser->second.getPasswordStatus() == true && itUser->second.getNickStatus() == true)
 					{
-						// pas fait encore
-
-						itUser->second.MakeTrue("USER");
-						itUser->second.CompleteUser(itUser->second.getNickname(), "Par defaut");
-						send(clientSocket, Print(GoodUser).c_str(), Print(GoodUser).length() + 1, 0);
+						if (returner == 1)
+						{
+							std::vector<std::string>::iterator it = _splited.begin();
+							++it;
+							itUser->second.MakeTrue("USER");
+							itUser->second.CompleteUser(itUser->second.getNickname(), *it);
+							send(clientSocket, Print(GoodUser).c_str(), Print(GoodUser).length() + 1, 0);
+						}
 					}
 					else if (message == "HELP\n")
 						send(clientSocket, Print(HELP_MESSAGE).c_str(), Print(HELP_MESSAGE).length() + 1, 0);
 					else
 						send(clientSocket, Print(ERR_USELESS).c_str(), Print(ERR_USELESS).length() + 1, 0);
+					returner = 0;
 				}
 				else 
 				{
-                    buffer[bytesRead] = '\0';
-					if (bytesRead > 512)
+                    buffer[_bytesRead] = '\0';
+					if (_bytesRead > 512)
 					{
 						send(clientSocket, Print(ERR_LENGTH).c_str(), Print(ERR_LENGTH).length() + 1, 0);
 						continue;
 					}
-					itUser = users.find(clientSocket);
+					itUser = _users.find(clientSocket);
 					newChat = makeIdenticalChat(buffer, itUser->second.getNickname());
-                    for (std::vector<int>::iterator it = clients.begin(); it != clients.end(); ++it)
+                    for (std::vector<int>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 					{
     					TmpClientSocket = *it;
                         if (TmpClientSocket != clientSocket)
@@ -260,6 +362,7 @@ int Server::StartServer( void )
                     }
                 }
 				cleanBuffer(buffer, 512);
+				_splited.clear();
             }
         }
     }
@@ -284,7 +387,7 @@ void Server::cleanBuffer(char *buffer, int len)
 		buffer[i] = '\0';
 }
 
-// strjoin to reconize the client //
+// link the nickname and the message //
 
 std::string Server::makeIdenticalChat(char *buffer, std::string name)
 {
@@ -295,6 +398,31 @@ std::string Server::makeIdenticalChat(char *buffer, std::string name)
 	namedChat.append(buffer);
 
 	return (namedChat);
+}
+
+// imagine tu sais pas utiliser substr ... //
+
+std::vector<std::string> Server::s_split(std::string str)
+{
+	int pos = 0;
+	std::vector<std::string> splited;
+	std::string sub;
+	std::string _strcpy = str;
+
+	for (int i = 0; str.c_str()[i];)
+	{
+		if (str.c_str()[i] && (str.c_str()[i] == '\t' || str.c_str()[i] == '\n' || str.c_str()[i] == ' ' || str.c_str()[i] == '\r' || str.c_str()[i] == '\v'))
+			i++, pos++;
+		else
+		{
+			while (str.c_str()[i] && str.c_str()[i] != '\n' && str.c_str()[i] != '\t' && str.c_str()[i] != ' ' && str.c_str()[i] != '\r' && str.c_str()[i] != '\v')
+				i++;
+			sub = _strcpy.substr(pos, i - pos);
+			splited.push_back(sub);
+			pos = i;
+		}
+	}
+	return (splited);
 }
 
 /* geter */
