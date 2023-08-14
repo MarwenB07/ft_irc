@@ -12,6 +12,9 @@ CXXFLAGS = #-Wall -Wextra -Werror -std=c++98
 
 SRC =	ft_irc.cpp \
 		Server/Server.cpp \
+		Server/ServHelp.cpp \
+		Commande/PrivateMsg.cpp \
+		Commande/Find.cpp \
 		User/User.cpp
 #
 OBJS = $(SRC:.cpp=.o)
