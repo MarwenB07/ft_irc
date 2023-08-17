@@ -11,9 +11,16 @@ User::User(int clientSocket) : _clientSocket(clientSocket)
 }
 
 void User::CompleteUser(std::string nickname, std::string username)
-{
-	_nickname = nickname;
+{	
+	char *test = strdup(nickname.c_str());
+	for (int i = 0; test[i]; i++)
+	{
+		if (test[i] == '\r' || test[i] == '\n')
+			test[i] = '\0';
+	}
+	_nickname = test;
 	_username = username;
+	delete test;
 }
 
 void User::MakeTrue(std::string statusName)

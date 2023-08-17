@@ -140,9 +140,9 @@ int Server::tryUser(std::vector<std::string> str, int socket)
 	++it;
 	username = *it;
 	
-	for (int i = 0; i <= username.length(); i++)
+	for (unsigned int i = 0; i <= username.length(); i++)
 	{
-		for (int i = 'a'; i <= 'z'; i++)
+		for (unsigned int i = 'a'; i <= 'z'; i++)
 		{
 			if (username.find(i, 1) != std::string::npos || username.find(i - 32, 1) != std::string::npos)
 				break;
@@ -157,7 +157,7 @@ int Server::tryUser(std::vector<std::string> str, int socket)
 	++it;
 	username = *it;
 
-	for (int i = 0; i <= username.length(); i++)
+	for (unsigned int i = 0; i <= username.length(); i++)
 	{
 		for (int i = 'a'; i <= 'z'; i++)
 		{
@@ -177,13 +177,11 @@ int Server::tryUser(std::vector<std::string> str, int socket)
 
 int Server::InitServer( void )
 {
-	struct sockaddr_in serverAddr = {0};
+	struct sockaddr_in serverAddr;
 
 	socklen_t serverAddrLen = sizeof(serverAddr);
 
 	_servSocket = socket(AF_INET, SOCK_STREAM, 0);
-
-	int on = 1;
 
 	if (_servSocket < 0)
 	{
@@ -232,17 +230,14 @@ int Server::StartServer( void )
 	FD_ZERO(&readfds);
     FD_SET(_servSocket, &readfds);
 
-	struct sockaddr_in clientAddr = {0};
+	struct sockaddr_in clientAddr;
 	socklen_t clientAddrLen = sizeof(clientAddr);
 
 	std::string message = WELCOME;
 	std::string newChat;
 
 	int cfd;
-	int sent;
-	int Connexion = -1;
 	int maxSocket = NB_CLIENTS;
-	int TmpClientSocket;
 	int returner = 0;
 
 	char buffer[512];
@@ -255,7 +250,7 @@ int Server::StartServer( void )
 
         if (select(maxSocket + 1, &currentfd, NULL, NULL, NULL) < 0) 
 		{
-            std::cerr << "Error in select.\n";
+            std::cerr << "Error in select. 😞\n";
             return -1;
         }
 
@@ -287,7 +282,9 @@ int Server::StartServer( void )
 			{
                 _bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
 				message = buffer;
+				_message = message;
 				_splited = s_split(message);
+				std::cout << "chartest = " << visiblechar(buffer) << std::endl;
 				if (itUser->second.getPasswordStatus() == false)
 					returner = tryPassword(_splited, clientSocket);
 				else if (itUser->second.getNickStatus() == false)
@@ -297,7 +294,7 @@ int Server::StartServer( void )
                 if (_bytesRead <= 0) 
 				{
 					if (_bytesRead < 0)
-                		std::cerr << "Error in recv from client: " << strerror(errno) << std::endl;
+                		std::cerr << "client[" << clientSocket <<"] was deconnected ... 😞"<< std::endl;
                     close(clientSocket);
                     FD_CLR(clientSocket, &readfds);
                     _clients.erase(std::remove(_clients.begin(), _clients.end(), clientSocket), _clients.end());
@@ -339,7 +336,7 @@ int Server::StartServer( void )
 							WelcomeToIrc(clientSocket);
 						}
 					}
-					else if (message == "HELP\n")
+					else if (message == "HELPER\r\n" || message == "HELPER\n")
 						send(clientSocket, Print(HELP_MESSAGE).c_str(), Print(HELP_MESSAGE).length(), 0);
 					else
 						send(clientSocket, Print(ERR_USELESS).c_str(), Print(ERR_USELESS).length(), 0);
@@ -353,7 +350,10 @@ int Server::StartServer( void )
 						send(clientSocket, Print(ERR_LENGTH).c_str(), Print(ERR_LENGTH).length(), 0);
 						continue;
 					}
-					FindCmd(_splited, clientSocket);
+					else if (message == "\r\n" || message == "\n")
+						send(clientSocket, Print(INVALIDE).c_str(), Print(INVALIDE).length(), 0);
+					else
+						ExectuteIrcCmd(FindCmd(_splited), clientSocket, _splited);
                 }
 				cleanBuffer(buffer, 512);
 				_splited.clear();
@@ -392,6 +392,13 @@ std::string Server::getPassword(void) const
 int Server::getSocket(void) const
 {
 	return (_servSocket);
+}
+
+// get the message //
+
+std::string Server::getMessage(void) const
+{
+	return (_message);
 }
 
 // get the time in second of the start of my server //

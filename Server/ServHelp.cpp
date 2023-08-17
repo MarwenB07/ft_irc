@@ -83,7 +83,46 @@ void Server::WelcomeToIrc(int socket)
 			info.append(" ");
 		info.append(use->second.getNickname());
 		info.append("\n");
-		send(socket, Print(info).c_str(), Print(info).length(), 0);
+		if (use->second.getUserStatus() == true)
+			send(socket, Print(info).c_str(), Print(info).length(), 0);
 	}
-	send(socket, "\n", 1, 0);
+}
+
+// functiom just to view invisible char //
+
+std::string visiblechar(char *buffer)
+{
+	char *test = strdup(buffer);
+	int j = 0;
+
+	for (int i = 0; buffer[i]; i++)
+	{
+		if (buffer[i] == '\n')
+		{
+			test[j++] = '\\';
+			test[j] = 'n';
+		}
+		else if (buffer[i] == '\r')
+		{
+			test[j++] = '\\';
+			test[j] = 'r';
+		}
+		else if (buffer[i] == '\v')
+		{
+			test[j++] = '\\';
+			test[j] = 'v';
+		}
+		else if (buffer[i] == '\f')
+		{
+			test[j++] = '\\';
+			test[j] = 'f';
+		}
+		else if (buffer[i] == '\t')
+		{
+			test[j++] = '\\';
+			test[j] = 't';
+		}
+		j++;
+	}
+	return (test);
 }

@@ -52,22 +52,28 @@ USER <username> 0 * :<realname> Exemple : USER guest 0 * :Bart Simpson\n\r\n"
 # define ERR_USER       "Invalide username.\r\n"
 
 # define ERR_LENGTH     "Invalide length.\r\n"
-# define ERR_USELESS    "Invalide message, you can use 'HELP' to have many information.\r\n"
+# define ERR_USELESS    "Invalide message, you can use 'HELPER' to have many information.\r\n"
 
 // CMD //
 
 # define INVALIDE "Invalide commande\r\n" 
 
+// PRIVMSG //
+
+# define PRIVMSG_ERR "Invalide commande PRIVMSG\r\n" 
+# define PRIVMSG_ERR_USER(name) (name + " doesn't exist\r\n")
+# define PRIVMSG(nick, ClientUser, message) (":" + nick + " PRIVMSG " + ClientUser + " " + message)
+
 // Colors //
 
-#define GREY   "\033[1;30m"
-#define RED    "\033[1;31m"
-#define GREEN  "\033[1;32m"
-#define YELLOW "\033[1;33m"
-#define BLUE   "\033[1;36m"
-#define PURPLE "\033[1;35m"
-#define WHITE  "\033[1;37m"
-#define END	   "\033[0;0m"
+# define GREY   "\033[1;30m"
+# define RED    "\033[1;31m"
+# define GREEN  "\033[1;32m"
+# define YELLOW "\033[1;33m"
+# define BLUE   "\033[1;36m"
+# define PURPLE "\033[1;35m"
+# define WHITE  "\033[1;37m"
+# define END	   "\033[0;0m"
 
 // class //
 
@@ -79,6 +85,7 @@ class Server
 		int _port;
 		time_t _initialTime;
 		std::string _password;
+		std::string _message;
 		int _servSocket;
 		int _clientSocket;
 		int _nbClient;
@@ -107,9 +114,17 @@ class Server
 
 		// Commande //
 
-		int FindCmd(std::vector<std::string> message, int socket);
+		int FindCmd(std::vector<std::string> message);
 		int FindSocket(std::string name);
 		void PrivateMsg(std::map<int, User> users, std::vector<std::string> buffer, int socket);
+
+		// Execute //
+
+		void ExectuteIrcCmd(int cmd, int socket, std::vector<std::string> split);
+
+		// Join //
+
+		void CreateChannel(void);
 		
 	public:
 		// constructor //
@@ -127,6 +142,7 @@ class Server
 		int getPort(void) const;
 		int getNbClient(void) const;
 		std::string getPassword(void) const;
+		std::string getMessage(void) const;
 		int getClientSocket(void) const;
 		int getSocket(void) const;
 		time_t getTime(void) const;
@@ -137,5 +153,7 @@ class Server
 
 		~Server();
 };
+
+std::string visiblechar(char *buffer);
 
 #endif
