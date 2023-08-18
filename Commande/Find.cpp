@@ -4,7 +4,9 @@ int Server::FindCmd(std::vector<std::string> message)
 {
 	std::vector<std::string>::iterator it = message.begin();
 
-	if (*it == "PRIVMSG")
+	if (*it == "HELPER")
+		return (0);
+	else if (*it == "PRIVMSG")
 		return (1);
 	else if (*it == "JOIN")
 		return (2);

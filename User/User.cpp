@@ -7,7 +7,6 @@ User::User(int clientSocket) : _clientSocket(clientSocket)
 	_userStatus = false;
 	_nickname = "NULL_NICKNAME";
 	_username = "NULL_USERNAME";
-	//std::cout << "User = socket[" << clientSocket << "]" << std::endl; 
 }
 
 void User::CompleteUser(std::string nickname, std::string username)

@@ -46,7 +46,6 @@ std::vector<std::string> Server::s_split(std::string str)
 	int pos = 0;
 	std::vector<std::string> splited;
 	std::string sub;
-	std::string _strcpy = str;
 
 	for (int i = 0; str.c_str()[i];)
 	{
@@ -56,12 +55,29 @@ std::vector<std::string> Server::s_split(std::string str)
 		{
 			while (str.c_str()[i] && str.c_str()[i] != '\n' && str.c_str()[i] != '\t' && str.c_str()[i] != ' ' && str.c_str()[i] != '\r' && str.c_str()[i] != '\v')
 				i++;
-			sub = _strcpy.substr(pos, i - pos);
+			sub = str.substr(pos, i - pos);
 			splited.push_back(sub);
 			pos = i;
 		}
 	}
 	return (splited);
+}
+
+// new split //
+
+std::vector<std::string> Server::newSplit(std::string s, std::string c)
+{
+    std::vector<std::string>    splitted;
+    int last_space = 0;
+    size_t space = s.find(c, 0);
+
+    while (space != std::string::npos) {
+        splitted.push_back(s.substr(last_space, space - last_space));
+        last_space = space + 1;
+        space = s.find(c, space + 1);
+    }
+    splitted.push_back(s.substr(last_space, s.size()));
+    return (splitted);
 }
 
 // give all information //

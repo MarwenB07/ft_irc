@@ -284,7 +284,6 @@ int Server::StartServer( void )
 				message = buffer;
 				_message = message;
 				_splited = s_split(message);
-				std::cout << "chartest = " << visiblechar(buffer) << std::endl;
 				if (itUser->second.getPasswordStatus() == false)
 					returner = tryPassword(_splited, clientSocket);
 				else if (itUser->second.getNickStatus() == false)
@@ -353,7 +352,7 @@ int Server::StartServer( void )
 					else if (message == "\r\n" || message == "\n")
 						send(clientSocket, Print(INVALIDE).c_str(), Print(INVALIDE).length(), 0);
 					else
-						ExectuteIrcCmd(FindCmd(_splited), clientSocket, _splited);
+						ExectuteIrcCmd(FindCmd(_splited), clientSocket, _splited, _channel);
                 }
 				cleanBuffer(buffer, 512);
 				_splited.clear();

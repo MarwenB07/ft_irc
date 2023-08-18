@@ -18,6 +18,7 @@
 #include <arpa/inet.h>
 #include <sstream>
 #include "../User/User.hpp"
+#include "../Channel/Channel.hpp"
 
 // define //
 
@@ -62,7 +63,8 @@ USER <username> 0 * :<realname> Exemple : USER guest 0 * :Bart Simpson\n\r\n"
 
 # define PRIVMSG_ERR "Invalide commande PRIVMSG\r\n" 
 # define PRIVMSG_ERR_USER(name) (name + " doesn't exist\r\n")
-# define PRIVMSG(nick, ClientUser, message) (":" + nick + " PRIVMSG " + ClientUser + " " + message)
+# define PRIVMSG(nick, ClientUser, message) (":" + nick + " PRIVMSG " + ClientUser + " " + message + "\r\n")
+# define PRIVMSG_CHANNEL(nick, ClientUser, message) (":" + nick + " PRIVMSG #" + ClientUser + " " + message + "\r\n")
 
 // Colors //
 
@@ -78,21 +80,24 @@ USER <username> 0 * :<realname> Exemple : USER guest 0 * :Bart Simpson\n\r\n"
 // class //
 
 class User;
+class Channel;
 
 class Server
 {
 	private:
 		int _port;
+		int _handler;
+		int _nbClient;
+		int _bytesRead;
+		int _servSocket;
+		int _clientSocket;
 		time_t _initialTime;
 		std::string _password;
 		std::string _message;
-		int _servSocket;
-		int _clientSocket;
-		int _nbClient;
-		std::vector<std::string> _splited;
 		std::map<int, User> _users;
+		std::map<std::string, Channel> _channel;
 		std::vector<int> _clients;
-		int _bytesRead;
+		std::vector<std::string> _splited;
 
 		// private function //
 
@@ -100,6 +105,7 @@ class Server
 		int tryNick(std::vector<std::string> str, std::map<int, User> user, int socket);
 		int tryUser(std::vector<std::string> str, int socket);
 		std::vector<std::string> s_split(std::string str);
+		std::vector<std::string> newSplit(std::string s, std::string c);
 		
 		// semi-usefull //
 
@@ -116,15 +122,25 @@ class Server
 
 		int FindCmd(std::vector<std::string> message);
 		int FindSocket(std::string name);
-		void PrivateMsg(std::map<int, User> users, std::vector<std::string> buffer, int socket);
+
+		// PRIVMSG
+
+		std::vector<std::string> catch_nickname(std::vector<std::string> buffer);
+		void PrivateMsg(std::map<int, User> users, std::vector<std::string> buffer, int socket, std::map<std::string, Channel> channelist);
 
 		// Execute //
 
-		void ExectuteIrcCmd(int cmd, int socket, std::vector<std::string> split);
+		void ExectuteIrcCmd(int cmd, int socket, std::vector<std::string> split, std::map<std::string, Channel> channel);
 
 		// Join //
 
-		void CreateChannel(void);
+		bool AlreadyInChannel(int socket, std::string channelname);
+		bool checkInvitation(int socket, std::string name, std::map<std::string, Channel> canal);
+		bool checkNameOfChannel(std::string channel);
+		bool ChannelAlreadyExists(std::string channel, std::map<std::string, Channel> channel_list);
+		void Join(int socket, std::vector<std::string> split, std::map<std::string, Channel> channel);
+		void JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel> channel);
+		void CreateChannel(int socket, std::string name);
 		
 	public:
 		// constructor //
