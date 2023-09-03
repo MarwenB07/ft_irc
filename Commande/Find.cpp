@@ -19,9 +19,9 @@ int Server::FindSocket(std::string name)
 	for (std::vector<int>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		i = *it;
-		std::map<int, User>::iterator users = _users.find(*it);
-		if (name == users->second.getNickname())
-			return (users->second.getClientSocket());
+		std::map<int, User *>::iterator users = _users.find(*it);
+		if (name == users->second->getNickname())
+			return (users->second->getClientSocket());
 	}
 	return (-1);
 }

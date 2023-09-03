@@ -19,11 +19,13 @@ JOIN #foo,#bar ; accède au canaux #foo and #bar.
 bool Server::AlreadyInChannel(int socket, std::string channelname)
 {
 	int dst_socket;
-	std::map<std::string, Channel>::iterator channel = _channel.find(channelname);
-	std::vector<int> canal = channel->second.getChannelAuthorized();
-	for (std::vector<int>::iterator it = canal.begin(); it != canal.end(); ++it)
+	std::map<std::string, Channel *>::iterator channel = _channel.find(channelname);
+	std::vector<User *> canal = channel->second->getChannelAuthorized();
+	for (std::vector<User *>::iterator it = canal.begin(); it != canal.end(); ++it)
 	{
-		dst_socket = *it;
+		User *u = channel->second->CpyUser(*it);
+		dst_socket = u->getClientSocket();
+		delete u;
 		if (dst_socket == socket)
 			return (true);
 	}
@@ -32,12 +34,14 @@ bool Server::AlreadyInChannel(int socket, std::string channelname)
 
 // check if my channel already 
 
-bool Server::ChannelAlreadyExists(std::string channel, std::map<std::string, Channel> channel_list)
+bool Server::ChannelAlreadyExists(std::string channel, std::map<std::string, Channel *> channel_list)
 {
-	for (std::map<std::string, Channel>::iterator it = channel_list.begin(); it != channel_list.end(); ++it)
+	std::string chan = "#";
+	chan.append(channel);
+	for (std::map<std::string, Channel *>::iterator it = channel_list.begin(); it != channel_list.end(); ++it)
 	{
-		std::cout << it->second.getChannelName() << " == " << channel << std::endl;
-		if (it->second.getChannelName() == channel)
+		std::cout << it->second->getChannelName() << " == " << chan << std::endl;
+		if (it->second->getChannelName() == chan)
 			return (true);
 	}
 	return (false);	
@@ -50,37 +54,42 @@ bool Server::checkNameOfChannel(std::string channel)
 	return (true);
 }
 
-bool Server::checkInvitation(int socket, std::string name, std::map<std::string, Channel> canal)
+bool Server::checkInvitation(int socket, std::string name, std::map<std::string, Channel *> canal)
 {
 	int dst_socket = -1;
-	std::map<std::string, Channel>::iterator channel = canal.find(name);
-	std::vector<int> list_invited = channel->second.getInvitedList();
+	std::map<std::string, Channel *>::iterator channel = canal.find(name);
+	std::vector<User *> list_invited = channel->second->getInvitedList();
 
-	for (std::vector<int>::iterator it = list_invited.begin(); it != list_invited.end(); ++it)
+	for (std::vector<User *>::iterator it = list_invited.begin(); it != list_invited.end(); ++it)
 	{
-		dst_socket = *it;
+		User *u = channel->second->CpyUser(*it);
+		dst_socket = u->getClientSocket();
+		delete u;
 		if (socket == dst_socket)
 			return (true);
 	}
 	return (false);
 }
 
-void Server::CreateChannel(int socket, std::string name)
+void Server::CreateChannel(User *user, std::string name)
 {
 	if (checkNameOfChannel(name) == false)
-		send(socket, Print(CREATE_ERROR).c_str(), Print(CREATE_ERROR).length(), 0);
+		send(user->getClientSocket(), Print(CREATE_ERROR).c_str(), Print(CREATE_ERROR).length(), 0);
 	else
 	{
 		name.erase(0, 1);
-		_channel.insert(std::make_pair(name, Channel(name, socket)));
-		send(socket, Print(CREATE_CHANNEL(name)).c_str(), Print(CREATE_CHANNEL(name)).length(), 0);
+		std::cout << "[" << user->getClientSocket() << "]" << std::endl;
+		send_msg(user->getClientSocket(), JOIN_CHANNEL(user->getNickname(), name));
+		send_msg(user->getClientSocket(), "chef\r\n");
+		_channel.insert(std::make_pair(name, new Channel(name, user)));
 	}
 }
 
-void Server::JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel> channel)
+void Server::JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel *> channel)
 {
-	std::map<std::string, Channel>::iterator canal = channel.find(name);
-	if (canal->second.getChannelInvitation() == true)
+	std::map<std::string, Channel *>::iterator canal = channel.find(name);
+	std::map<int, User *>::iterator user = _users.find(socket);
+	if (canal->second->getChannelInvitation() == true)
 	{
 		if (checkInvitation(socket, name, channel) == false)
 		{
@@ -89,18 +98,21 @@ void Server::JoinChannel(int socket, std::string nickname, std::string name, std
 		}
 	}
 	if (AlreadyInChannel(socket, canal->first) == true)
-		send(socket, Print(ALREADY_IN_CHANNEL(name)).c_str(), Print(ALREADY_IN_CHANNEL(name)).length(), 0);
+		send_msg(socket, ALREADY_IN_CHANNEL(name));
 	else
-		canal->second.AddToChannel(socket, nickname);
+	{
+		canal->second->AddToChannel(user->second, nickname);
+		canal->second->AddChannelAuthorized(user->second);
+	}
 }
 
-void Server::Join(int socket, std::vector<std::string> split, std::map<std::string, Channel> channel)
+void Server::Join(int socket, std::vector<std::string> split, std::map<std::string, Channel *> channel)
 {
 	int i = 0;
 	std::string word;
 	std::vector<std::string> channelname;
 	std::vector<std::string>::iterator w = split.begin();
-	std::map<int, User>::iterator user = _users.find(socket);
+	std::map<int, User *>::iterator user = _users.find(socket);
 
 	for (std::vector<std::string>::iterator count = split.begin(); count != split.end(); ++count)
 	{
@@ -117,9 +129,9 @@ void Server::Join(int socket, std::vector<std::string> split, std::map<std::stri
 			word = *it;
 			word.erase(0, 1);
 			if (ChannelAlreadyExists(word, _channel) == true)
-				JoinChannel(socket, user->second.getNickname(), word, channel);
+				JoinChannel(socket, user->second->getNickname(), word, channel);
 			else
-				CreateChannel(socket, *it);
+				CreateChannel(user->second, *it);
 		}
 	}
 	else if (i == 3)

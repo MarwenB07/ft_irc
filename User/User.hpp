@@ -12,6 +12,7 @@ class User
 	private:
 		std::string _nickname;
 		std::string _username;
+		std::string _host;
 		int 		_clientSocket;
 		bool		_passwordStatus;
 		bool		_nickStatus;
@@ -19,7 +20,12 @@ class User
 		
 	public:
 		// constructor //
-		User(int clientSocket);
+		User( void );
+		User(int clientSocket, std::string host);
+        User( User const & src );
+
+		// operator //
+		User & operator=( User const & rhs );
 		
 		// other //
 		void CompleteUser(std::string nickname, std::string username);
@@ -28,10 +34,12 @@ class User
 		// geter //  ç
 		std::string getNickname(void) const;
 		std::string getUsername(void) const;
+		std::string	getUserHost(void) const;
 		int 		getClientSocket(void) const;
 		bool 		getNickStatus(void) const;
 		bool 		getPasswordStatus(void) const;
 		bool 		getUserStatus(void) const;
+		
 
 		~User();
 };

@@ -8,8 +8,12 @@ Server::Server(int port, std::string password) : _port(port), _password(password
 {
 	_servSocket = -1;
 	_clientSocket = -1;
+	_actually_connected = 0;
 	_nbClient = 0;
-	_initialTime = time(NULL);
+	_serverName = "ft_irc.42";
+	_initialTime = time(nullptr);
+	_version = "0.1";
+	_max = NB_CLIENTS;
 }
 
 /* function */
@@ -36,7 +40,7 @@ int Server::tryPassword(std::vector<std::string> str, int socket)
 
 // check if my client send a good nickname //
 
-int Server::tryNick(std::vector<std::string> str, std::map<int, User> user, int socket)
+int Server::tryNick(std::vector<std::string> str, std::map<int, User *> user, int socket)
 {
 	std::string nickname;
 	std::string none_first = "_0123456789";
@@ -47,7 +51,7 @@ int Server::tryNick(std::vector<std::string> str, std::map<int, User> user, int 
 	
 	std::vector<std::string>::iterator sit = str.begin();
 	
-	std::map<int, User>::iterator it;
+	std::map<int, User *>::iterator it;
 	
 	if (*sit != "NICK")
 		return (-1);
@@ -83,7 +87,7 @@ int Server::tryNick(std::vector<std::string> str, std::map<int, User> user, int 
 
 	for (it = user.begin(); it != user.end() ;++it)
 	{
-		if (it->second.getNickname() != "NULL_NICKNAME" && it->second.getNickname() == nickname && it->second.getClientSocket() != socket)
+		if (it->second->getNickname() != "NULL_NICKNAME" && it->second->getNickname() == nickname && it->second->getClientSocket() != socket)
 		{
 			send(socket, Print(ERR_NICKSAME).c_str(), Print(ERR_NICKSAME).length(), 0);
 			return (2);
@@ -240,7 +244,7 @@ int Server::StartServer( void )
 	int maxSocket = NB_CLIENTS;
 	int returner = 0;
 
-	char buffer[512];
+	char buffer[513];
 
 	while (true) 
 	{
@@ -264,10 +268,17 @@ int Server::StartServer( void )
 
             FD_SET(cfd, &readfds);
 
+			char clientIP[INET_ADDRSTRLEN];
+    		inet_ntop(AF_INET, &(clientAddr.sin_addr), clientIP, INET_ADDRSTRLEN);
+
+			_host = clientIP;
+
+			cleanBuffer(clientIP, 512);
+
             if (cfd > maxSocket)
                 maxSocket = cfd;
 
-			_users.insert(std::make_pair(cfd, User(cfd)));
+			_users.insert(std::make_pair(cfd, new User(cfd, clientIP)));
 
             std::string welcomeMessage = WELCOME;
             send(cfd, welcomeMessage.c_str(), welcomeMessage.length(), 0);
@@ -277,16 +288,16 @@ int Server::StartServer( void )
         for (std::vector<int>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 		{
     		int clientSocket = *it;
-			std::map<int, User>::iterator itUser = _users.find(clientSocket);
+			std::map<int, User *>::iterator itUser = _users.find(clientSocket);
             if (FD_ISSET(clientSocket, &currentfd)) 
 			{
                 _bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
 				message = buffer;
 				_message = message;
 				_splited = s_split(message);
-				if (itUser->second.getPasswordStatus() == false)
+				if (itUser->second->getPasswordStatus() == false)
 					returner = tryPassword(_splited, clientSocket);
-				else if (itUser->second.getNickStatus() == false)
+				else if (itUser->second->getNickStatus() == false)
 					returner = tryNick(_splited, _users, clientSocket);
 				else
 					returner = tryUser(_splited, clientSocket);
@@ -295,44 +306,50 @@ int Server::StartServer( void )
 					if (_bytesRead < 0)
                 		std::cerr << "client[" << clientSocket <<"] was deconnected ... 😞"<< std::endl;
                     close(clientSocket);
+					setClientConnected(1);
                     FD_CLR(clientSocket, &readfds);
+					_users.erase(std::remove(_users.begin(), _users.end(), clientSocket), _users.end());
+					// *function efface l'user des channel* //
                     _clients.erase(std::remove(_clients.begin(), _clients.end(), clientSocket), _clients.end());
 					break;
                 }
-				else if (_bytesRead > 0 && (!itUser->second.getPasswordStatus() || !itUser->second.getNickStatus() || !itUser->second.getUserStatus()))
+				else if (_bytesRead > 0 && (!itUser->second->getPasswordStatus() || !itUser->second->getNickStatus() || !itUser->second->getUserStatus()))
 				{
 					if (_bytesRead > 512)
 					{
-						send(clientSocket, Print(ERR_LENGTH).c_str(), Print(ERR_LENGTH).length(), 0);
+						close(clientSocket);
+						// supp le client user //
 						continue;
 					}
-					else if (returner > 0 && itUser->second.getPasswordStatus() == false)
+					else if (returner > 0 && itUser->second->getPasswordStatus() == false)
 					{
 						if (returner == 1)
 						{
-							itUser->second.MakeTrue("PASS");
+							itUser->second->MakeTrue("PASS");
 							send(clientSocket, Print(GoodPass).c_str(), Print(GoodPass).length(), 0);
 						}
 					}
-					else if (returner > 0 && itUser->second.getPasswordStatus() == true && itUser->second.getNickStatus() == false)
+					else if (returner > 0 && itUser->second->getPasswordStatus() == true && itUser->second->getNickStatus() == false)
 					{
 						if (returner == 1)
 						{
-							itUser->second.MakeTrue("NICK");
-							itUser->second.CompleteUser(message.c_str() + 5, itUser->second.getUsername());
+							itUser->second->MakeTrue("NICK");
+							itUser->second->CompleteUser(message.c_str() + 5, itUser->second->getUsername());
 							send(clientSocket, Print(GoodNick).c_str(), Print(GoodNick).length(), 0);
 						}
 					}
-					else if (returner > 0 && itUser->second.getUserStatus() == false && itUser->second.getPasswordStatus() == true && itUser->second.getNickStatus() == true)
+					else if (returner > 0 && itUser->second->getUserStatus() == false && itUser->second->getPasswordStatus() == true && itUser->second->getNickStatus() == true)
 					{
 						if (returner == 1)
 						{
 							std::vector<std::string>::iterator it = _splited.begin();
 							++it;
-							itUser->second.MakeTrue("USER");
-							itUser->second.CompleteUser(itUser->second.getNickname(), *it);
+							itUser->second->MakeTrue("USER");
+							itUser->second->CompleteUser(itUser->second->getNickname(), *it);
 							send(clientSocket, Print(GoodUser).c_str(), Print(GoodUser).length(), 0);
-							WelcomeToIrc(clientSocket);
+							UpNbClients();
+							setClientConnected(1);
+							WelcomeToIrc(clientSocket, itUser->second);
 						}
 					}
 					else if (message == "HELPER\r\n" || message == "HELPER\n")
@@ -352,7 +369,7 @@ int Server::StartServer( void )
 					else if (message == "\r\n" || message == "\n")
 						send(clientSocket, Print(INVALIDE).c_str(), Print(INVALIDE).length(), 0);
 					else
-						ExectuteIrcCmd(FindCmd(_splited), clientSocket, _splited, _channel);
+						ExectuteIrcCmd(FindCmd(_splited), clientSocket, _splited, getChannel());
                 }
 				cleanBuffer(buffer, 512);
 				_splited.clear();
@@ -372,6 +389,13 @@ int Server::getPort(void) const
 	return (_port);
 }
 
+// get max clients //
+
+int Server::getMaxClient(void) const
+{
+	return (_max);
+}
+
 // get nb of client connected in my server //
 
 int Server::getNbClient(void) const
@@ -384,6 +408,16 @@ int Server::getNbClient(void) const
 std::string Server::getPassword(void) const
 {
 	return (_password);
+}
+
+std::string Server::getServerVersion(void) const
+{
+	return (_version);
+}
+
+std::string Server::getServerName(void) const
+{
+	return (_serverName);
 }
 
 // get my socket stat //
@@ -412,6 +446,23 @@ time_t Server::getTime(void) const
 int Server::getClientSocket(void) const
 {
 	return (_clientSocket);
+}
+
+// get my channel  //
+
+std::map<std::string, Channel *> Server::getChannel(void) const
+{
+	return (_channel);
+}
+
+void Server::UpNbClients(void)
+{
+	_nbClient += 1;
+}
+
+void Server::setClientConnected(int set)
+{
+	_actually_connected += set;
 }
 
 /* destructor */

@@ -1,12 +1,37 @@
 #include "User.hpp"
 
-User::User(int clientSocket) : _clientSocket(clientSocket)
+User::User(void)
+{
+
+}
+
+User::User(int clientSocket, std::string host) : _clientSocket(clientSocket), _host(host)
 {
 	_nickStatus = false;
 	_passwordStatus = false;
 	_userStatus = false;
 	_nickname = "NULL_NICKNAME";
 	_username = "NULL_USERNAME";
+}
+
+User::User( User const & src )
+{
+	*this = src;
+
+	return ;
+}
+
+User & User::operator=( User const & rhs )
+{
+	this->_nickname = rhs.getNickname();
+	this->_username = rhs.getUsername();
+	this->_clientSocket = rhs.getClientSocket();
+	this->_nickStatus = rhs.getNickStatus();
+	this->_passwordStatus = rhs.getPasswordStatus();
+	this->_userStatus = rhs.getUserStatus();
+	this->_host = rhs.getUserHost();
+
+	return (*this);
 }
 
 void User::CompleteUser(std::string nickname, std::string username)
@@ -60,6 +85,11 @@ std::string User::getNickname(void) const
 std::string User::getUsername(void) const
 {
 	return (_username);
+}
+
+std::string User::getUserHost(void) const
+{
+	return (_host);
 }
 
 User::~User()

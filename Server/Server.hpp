@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <poll.h>
 #include <map>
@@ -19,6 +21,7 @@
 #include <sstream>
 #include "../User/User.hpp"
 #include "../Channel/Channel.hpp"
+#include "../Irc_msg.hpp"
 
 // define //
 
@@ -64,18 +67,7 @@ USER <username> 0 * :<realname> Exemple : USER guest 0 * :Bart Simpson\n\r\n"
 # define PRIVMSG_ERR "Invalide commande PRIVMSG\r\n" 
 # define PRIVMSG_ERR_USER(name) (name + " doesn't exist\r\n")
 # define PRIVMSG(nick, ClientUser, message) (":" + nick + " PRIVMSG " + ClientUser + " " + message + "\r\n")
-# define PRIVMSG_CHANNEL(nick, ClientUser, message) (":" + nick + " PRIVMSG #" + ClientUser + " " + message + "\r\n")
-
-// Colors //
-
-# define GREY   "\033[1;30m"
-# define RED    "\033[1;31m"
-# define GREEN  "\033[1;32m"
-# define YELLOW "\033[1;33m"
-# define BLUE   "\033[1;36m"
-# define PURPLE "\033[1;35m"
-# define WHITE  "\033[1;37m"
-# define END	   "\033[0;0m"
+# define PRIVMSG_CHANNEL(nick, ClientUser, message) (":" + nick + "!~h@localhost PRIVMSG #" + ClientUser + " " + message + "\r\n")
 
 // class //
 
@@ -91,18 +83,26 @@ class Server
 		int _bytesRead;
 		int _servSocket;
 		int _clientSocket;
+		int _actually_connected;
+		int _max;
+
 		time_t _initialTime;
+
+		std::string _host;
+		std::string _version;
 		std::string _password;
 		std::string _message;
-		std::map<int, User> _users;
-		std::map<std::string, Channel> _channel;
+		std::string _serverName;
+		
+		std::map<int, User *> _users;
+		std::map<std::string, Channel *> _channel;
 		std::vector<int> _clients;
 		std::vector<std::string> _splited;
 
 		// private function //
 
 		int tryPassword(std::vector<std::string> str, int socket);
-		int tryNick(std::vector<std::string> str, std::map<int, User> user, int socket);
+		int tryNick(std::vector<std::string> str, std::map<int, User *> user, int socket);
 		int tryUser(std::vector<std::string> str, int socket);
 		std::vector<std::string> s_split(std::string str);
 		std::vector<std::string> newSplit(std::string s, std::string c);
@@ -116,7 +116,7 @@ class Server
 		// ServerHelp //
 
 		std::string s_itoa(int number);
-		void WelcomeToIrc(int socket);
+		void WelcomeToIrc(int socket, User *user);
 
 		// Commande //
 
@@ -126,21 +126,21 @@ class Server
 		// PRIVMSG
 
 		std::vector<std::string> catch_nickname(std::vector<std::string> buffer);
-		void PrivateMsg(std::map<int, User> users, std::vector<std::string> buffer, int socket, std::map<std::string, Channel> channelist);
+		void PrivateMsg(std::map<int, User *> users, std::vector<std::string> buffer, int socket, std::map<std::string, Channel *> channelist);
 
 		// Execute //
 
-		void ExectuteIrcCmd(int cmd, int socket, std::vector<std::string> split, std::map<std::string, Channel> channel);
+		void ExectuteIrcCmd(int cmd, int socket, std::vector<std::string> split, std::map<std::string, Channel *> channel);
 
 		// Join //
 
 		bool AlreadyInChannel(int socket, std::string channelname);
-		bool checkInvitation(int socket, std::string name, std::map<std::string, Channel> canal);
+		bool checkInvitation(int socket, std::string name, std::map<std::string, Channel *> canal);
 		bool checkNameOfChannel(std::string channel);
-		bool ChannelAlreadyExists(std::string channel, std::map<std::string, Channel> channel_list);
-		void Join(int socket, std::vector<std::string> split, std::map<std::string, Channel> channel);
-		void JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel> channel);
-		void CreateChannel(int socket, std::string name);
+		bool ChannelAlreadyExists(std::string channel, std::map<std::string, Channel *> channel_list);
+		void Join(int socket, std::vector<std::string> split, std::map<std::string, Channel *> channel);
+		void JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel *> channel);
+		void CreateChannel(User *user, std::string name);
 		
 	public:
 		// constructor //
@@ -157,11 +157,18 @@ class Server
 
 		int getPort(void) const;
 		int getNbClient(void) const;
-		std::string getPassword(void) const;
-		std::string getMessage(void) const;
 		int getClientSocket(void) const;
 		int getSocket(void) const;
+		int getMaxClient(void) const;
+		std::string getPassword(void) const;
+		std::string getMessage(void) const;
+		std::string getServerName(void) const;
+		std::string getServerVersion(void) const;
 		time_t getTime(void) const;
+		std::map<std::string, Channel *> getChannel(void) const;
+
+		void UpNbClients(void);
+		void setClientConnected(int set);
 
 		// usefull function //
 		int InitServer( void );
@@ -171,5 +178,6 @@ class Server
 };
 
 std::string visiblechar(char *buffer);
+void send_msg(int socket, std::string message);
 
 #endif

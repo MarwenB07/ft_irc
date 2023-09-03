@@ -4,7 +4,7 @@ NAME = ircserv
 
 # ---- COMPLILATION ---- #
 
-CPP = c++
+CPP = @c++
 
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 
@@ -27,7 +27,7 @@ OBJS = $(SRC:.cpp=.o)
 all : $(NAME)
 
 $(NAME) : $(OBJS)
-	@$(CPP) $(CXXFLAGS) $(OBJS) -o $(NAME)
+	@$(CPP) $(CXXFLAGS) $(OBJS) -o $(NAME) \
 
 # ---- CLEAN ---- #
 

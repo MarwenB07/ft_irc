@@ -82,26 +82,59 @@ std::vector<std::string> Server::newSplit(std::string s, std::string c)
 
 // give all information //
 
-void Server::WelcomeToIrc(int socket)
+//void Server::WelcomeToIrc(int socket)
+//{
+//	send(socket, Print(IRC_WELCOME).c_str(), Print(IRC_WELCOME).length(), 0);
+//	send(socket, Print(IRC_INFO_LIST).c_str(), Print(IRC_INFO_LIST).length(), 0);
+//
+//	std::map<int, User *>::iterator use;
+//	std::string info;
+//
+//	for (std::vector<int>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+//	{	
+//		use = _users.find(*it);
+//
+//		info = s_itoa(*it);
+//		while (info.length() < 10)
+//			info.append(" ");
+//		info.append(use->second->getNickname());
+//		info.append("\n");
+//		if (use->second->getUserStatus() == true)
+//			send(socket, Print(info).c_str(), Print(info).length(), 0);
+//	}
+//}
+
+// give all information //
+
+void Server::WelcomeToIrc(int socket, User *user)
 {
-	send(socket, Print(IRC_WELCOME).c_str(), Print(IRC_WELCOME).length(), 0);
-	send(socket, Print(IRC_INFO_LIST).c_str(), Print(IRC_INFO_LIST).length(), 0);
+	std::string time = "010205";
+	std::string unknow = "inconnue";
 
-	std::map<int, User>::iterator use;
-	std::string info;
+	send_msg(socket, RPL_WELCOME(user->getNickname(), getServerName(), user->getUsername(), user->getUserHost())); // 001
+	send_msg(socket, RPL_YOURHOST(user->getNickname(), getServerName(), getServerVersion())); // 002
+	send_msg(socket, RPL_CREATED(user->getNickname(), time)); // 003
+	send_msg(socket, RPL_MYINFO(user->getNickname(), getServerName(), getServerVersion(), unknow, unknow, unknow)); // 004
+	send_msg(socket, RPL_ISUPPORT(user->getNickname(), unknow)); // 005
 
-	for (std::vector<int>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-	{	
-		use = _users.find(*it);
+	send_msg(socket, RPL_LUSERCLIENT(user->getNickname(), s_itoa(getNbClient()))); // 251
 
-		info = s_itoa(*it);
-		while (info.length() < 10)
-			info.append(" ");
-		info.append(use->second.getNickname());
-		info.append("\n");
-		if (use->second.getUserStatus() == true)
-			send(socket, Print(info).c_str(), Print(info).length(), 0);
-	}
+	// mettre operator
+
+	
+	send_msg(socket, RPL_LUSEROP(user->getNickname(), s_itoa(getNbClient()))); // 252
+	send_msg(socket, RPL_LUSERCHANNELS(user->getNickname(), s_itoa(getNbClient()))); // 254 
+	send_msg(socket, RPL_LUSERME(user->getNickname(), s_itoa(getNbClient()))); // 255
+	send_msg(socket, RPL_LOCALUSERS(user->getNickname(), s_itoa(getNbClient()), s_itoa(getMaxClient()))); // 265
+	send_msg(socket, RPL_GLOBALUSERS(user->getNickname(), s_itoa(getNbClient()), s_itoa(getMaxClient()))); // 266
+
+	// message //
+
+	send_msg(socket, IRC_WELCOME);
+
+	// end //
+
+	send_msg(socket, RPL_ENDOFMOTD(user->getNickname()));
 }
 
 // functiom just to view invisible char //
@@ -141,4 +174,9 @@ std::string visiblechar(char *buffer)
 		j++;
 	}
 	return (test);
+}
+
+void send_msg(int socket, std::string message)
+{
+	send(socket, message.c_str(), message.size(), 0);
 }
