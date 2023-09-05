@@ -41,7 +41,7 @@ void Server::PrivateMsg(std::map<int, User *> users, std::vector<std::string> bu
 
 	if (sended_message == "NONE")
 	{
-		send(socket, Print(PRIVMSG_ERR).c_str(), Print(PRIVMSG_ERR).length(), 0); 
+		send_msg(socket, PRIVMSG_ERR); 
 		return ;
 	}
 	
@@ -51,37 +51,18 @@ void Server::PrivateMsg(std::map<int, User *> users, std::vector<std::string> bu
 	std::vector<std::string>::iterator itt = nickmame.begin();
 	std::string first = *itt;
 
-	if (first.find('#') != std::string::npos && first.find('#') < 2)
+	if (first.find('#') != std::string::npos && first.find('#') < 1)
 	{
 		for (std::vector<std::string>::iterator it = nickmame.begin(); it != nickmame.end(); ++it)
 		{
 			first = *it;
 			if (ChannelAlreadyExists(first, _channel) == true)
 			{
-				std::map<std::string, Channel *>::iterator channel = channelist.find(first);
-				std::vector<User *> sock = channel->second->getChannelAuthorized();
-				for (std::vector<User *>::iterator socke = sock.begin(); socke != sock.end(); ++socke)
-				{
-					User *use = channel->second->CpyUser(*socke);
-					dst_socket = use->getClientSocket();
-					std::cout << dst_socket << std::endl;
-					delete use;
-				}
-
-				for (std::vector<User *>::iterator socke = sock.begin(); socke != sock.end(); ++socke)
-				{
-					User *use = channel->second->CpyUser(*socke);
-					dst_socket = use->getClientSocket();
-					delete use;
-					if (dst_socket != socket)
-					{
-						std::cout << "test message" << std::endl;
-						send(dst_socket, Print("message\r\n").c_str(), Print("message\r\n").length(), 0);
-					}
-				}
+				std::map<std::string, Channel *>::iterator channel = channelist.find(first.c_str() + 1);
+				channel->second->SendMsgToChannel(PRIVMSG_CHANNEL(cuser->second->getNickname(), first, sended_message), socket);
 			}
 			else
-				send(socket, Print(UNKNOW_CHANNEL(first)).c_str(), Print(UNKNOW_CHANNEL(first)).length(), 0); 
+				send_msg(socket, UNKNOW_CHANNEL(first)); 
 		}
 	}
 	else
@@ -92,11 +73,10 @@ void Server::PrivateMsg(std::map<int, User *> users, std::vector<std::string> bu
 			if (dst_socket != -1)
 			{
 				std::map<int, User *>::iterator user = users.find(dst_socket);
-				send(dst_socket, PRIVMSG(user_client, user->second->getNickname(), sended_message).c_str(), 
-					PRIVMSG(user_client, user->second->getNickname(), sended_message).length(), 0);
+				send_msg(dst_socket, PRIVMSG(user_client, user->second->getNickname(), sended_message));
 			}
 			else
-				send(socket, Print(PRIVMSG_ERR_USER(*it)).c_str(), Print(PRIVMSG_ERR_USER(*it)).length(), 0); 
+				send_msg(socket, PRIVMSG_ERR_USER(*it)); 
 		}
 	}
 }

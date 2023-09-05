@@ -23,7 +23,7 @@ bool Server::AlreadyInChannel(int socket, std::string channelname)
 	std::vector<User *> canal = channel->second->getChannelAuthorized();
 	for (std::vector<User *>::iterator it = canal.begin(); it != canal.end(); ++it)
 	{
-		User *u = channel->second->CpyUser(*it);
+		User *u = CpyUser(*it);
 		dst_socket = u->getClientSocket();
 		delete u;
 		if (dst_socket == socket)
@@ -36,11 +36,10 @@ bool Server::AlreadyInChannel(int socket, std::string channelname)
 
 bool Server::ChannelAlreadyExists(std::string channel, std::map<std::string, Channel *> channel_list)
 {
-	std::string chan = "#";
-	chan.append(channel);
+	std::string chan = channel;
+	chan.erase(0, 1);
 	for (std::map<std::string, Channel *>::iterator it = channel_list.begin(); it != channel_list.end(); ++it)
 	{
-		std::cout << it->second->getChannelName() << " == " << chan << std::endl;
 		if (it->second->getChannelName() == chan)
 			return (true);
 	}
@@ -62,7 +61,7 @@ bool Server::checkInvitation(int socket, std::string name, std::map<std::string,
 
 	for (std::vector<User *>::iterator it = list_invited.begin(); it != list_invited.end(); ++it)
 	{
-		User *u = channel->second->CpyUser(*it);
+		User *u = CpyUser(*it);
 		dst_socket = u->getClientSocket();
 		delete u;
 		if (socket == dst_socket)
@@ -74,13 +73,12 @@ bool Server::checkInvitation(int socket, std::string name, std::map<std::string,
 void Server::CreateChannel(User *user, std::string name)
 {
 	if (checkNameOfChannel(name) == false)
-		send(user->getClientSocket(), Print(CREATE_ERROR).c_str(), Print(CREATE_ERROR).length(), 0);
+		send_msg(user->getClientSocket(), CREATE_ERROR);
 	else
 	{
 		name.erase(0, 1);
-		std::cout << "[" << user->getClientSocket() << "]" << std::endl;
+		std::cout << "channel = " << name << std::endl;
 		send_msg(user->getClientSocket(), JOIN_CHANNEL(user->getNickname(), name));
-		send_msg(user->getClientSocket(), "chef\r\n");
 		_channel.insert(std::make_pair(name, new Channel(name, user)));
 	}
 }
@@ -93,7 +91,7 @@ void Server::JoinChannel(int socket, std::string nickname, std::string name, std
 	{
 		if (checkInvitation(socket, name, channel) == false)
 		{
-			send(socket, Print(NOT_INVITED).c_str(), Print(NOT_INVITED).length(), 0);
+			send_msg(socket, NOT_INVITED);
 			return ;
 		}
 	}

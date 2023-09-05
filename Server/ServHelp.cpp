@@ -176,7 +176,26 @@ std::string visiblechar(char *buffer)
 	return (test);
 }
 
+void Server::sends_msg(int socket, std::string message, std::vector<User *> all, int open)
+{
+	for (std::vector<User *>::iterator it = all.begin(); it != all.end(); ++it)
+	{
+		User *user = CpyUser(*it);
+		if (user->getClientSocket() != socket)
+		send(user->getClientSocket(), message.c_str(), message.size(), 0);
+		delete user;
+	}
+	if (open == 0)
+		send(socket, message.c_str(), message.size(), 0);
+}
+
 void send_msg(int socket, std::string message)
 {
 	send(socket, message.c_str(), message.size(), 0);
+}
+
+User *CpyUser(User *user)
+{
+	User *n_user = new User(*user);
+	return (n_user);
 }

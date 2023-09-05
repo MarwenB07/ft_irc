@@ -13,6 +13,7 @@ CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 SRC =	ft_irc.cpp \
 		Server/Server.cpp \
 		Server/ServHelp.cpp \
+		Server/ServerTrash.cpp \
 		Commande/Execute.cpp \
 		Commande/Join.cpp \
 		Commande/PrivateMsg.cpp \

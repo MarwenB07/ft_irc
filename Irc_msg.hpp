@@ -45,8 +45,12 @@ ERR_NOSUCHCHANNEL               ERR_TOOMANYCHANNELS
 
 */
 
-# define RPL_TOPIC
-# define RPL_NAMREPLY
+// Topic //
+
+# define RPL_NOTOPIC(client, channel) (":localhost 331 " + client + " " + channel + " :No topic is set\r\n") // 331
+# define RPL_TOPIC(client, channel, topic) (":localhost 332 " + client + " " + channel + " :" + topic + "\r\n") // 332
+# define ERR_NOTONCHANNEL(client, channel) (":localhost 442 " + client + " " + channel + " :You're not on that channel\r\n") // 442
+  
 
 					/* Error Macro in Irc */
 

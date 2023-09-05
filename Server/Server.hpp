@@ -67,7 +67,7 @@ USER <username> 0 * :<realname> Exemple : USER guest 0 * :Bart Simpson\n\r\n"
 # define PRIVMSG_ERR "Invalide commande PRIVMSG\r\n" 
 # define PRIVMSG_ERR_USER(name) (name + " doesn't exist\r\n")
 # define PRIVMSG(nick, ClientUser, message) (":" + nick + " PRIVMSG " + ClientUser + " " + message + "\r\n")
-# define PRIVMSG_CHANNEL(nick, ClientUser, message) (":" + nick + "!~h@localhost PRIVMSG #" + ClientUser + " " + message + "\r\n")
+# define PRIVMSG_CHANNEL(nick, channel, message) (":" + nick + " PRIVMSG " + channel + " " + message + "\r\n")
 
 // class //
 
@@ -130,7 +130,7 @@ class Server
 
 		// Execute //
 
-		void ExectuteIrcCmd(int cmd, int socket, std::vector<std::string> split, std::map<std::string, Channel *> channel);
+		void ExectuteIrcCmd(int socket, std::string message, std::map<std::string, Channel *> channel);
 
 		// Join //
 
@@ -141,7 +141,13 @@ class Server
 		void Join(int socket, std::vector<std::string> split, std::map<std::string, Channel *> channel);
 		void JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel *> channel);
 		void CreateChannel(User *user, std::string name);
-		
+
+		// Trash //
+
+		void UserStep(int socket, int returner, User *user);
+		void NickStep(int socket, int returner, User *user);
+		void PassStep(int socket, std::string message, int returner, User *user);
+	
 	public:
 		// constructor //
 
@@ -170,6 +176,8 @@ class Server
 		void UpNbClients(void);
 		void setClientConnected(int set);
 
+		void sends_msg(int socket, std::string message, std::vector<User *> all, int open);
+
 		// usefull function //
 		int InitServer( void );
 		int StartServer( void );
@@ -177,6 +185,7 @@ class Server
 		~Server();
 };
 
+User *CpyUser(User *user);
 std::string visiblechar(char *buffer);
 void send_msg(int socket, std::string message);
 

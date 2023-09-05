@@ -295,6 +295,7 @@ int Server::StartServer( void )
 				message = buffer;
 				_message = message;
 				_splited = s_split(message);
+				//std::cout << visiblechar(buffer);
 				if (itUser->second->getPasswordStatus() == false)
 					returner = tryPassword(_splited, clientSocket);
 				else if (itUser->second->getNickStatus() == false)
@@ -308,7 +309,7 @@ int Server::StartServer( void )
                     close(clientSocket);
 					setClientConnected(1);
                     FD_CLR(clientSocket, &readfds);
-					_users.erase(std::remove(_users.begin(), _users.end(), clientSocket), _users.end());
+					//_users.erase(std::remove(_users.begin(), _users.end(), clientSocket), _users.end());
 					// *function efface l'user des channel* //
                     _clients.erase(std::remove(_clients.begin(), _clients.end(), clientSocket), _clients.end());
 					break;
@@ -322,56 +323,31 @@ int Server::StartServer( void )
 						continue;
 					}
 					else if (returner > 0 && itUser->second->getPasswordStatus() == false)
-					{
-						if (returner == 1)
-						{
-							itUser->second->MakeTrue("PASS");
-							send(clientSocket, Print(GoodPass).c_str(), Print(GoodPass).length(), 0);
-						}
-					}
+						NickStep(clientSocket, returner, itUser->second);
 					else if (returner > 0 && itUser->second->getPasswordStatus() == true && itUser->second->getNickStatus() == false)
-					{
-						if (returner == 1)
-						{
-							itUser->second->MakeTrue("NICK");
-							itUser->second->CompleteUser(message.c_str() + 5, itUser->second->getUsername());
-							send(clientSocket, Print(GoodNick).c_str(), Print(GoodNick).length(), 0);
-						}
-					}
+						PassStep(clientSocket, message, returner, itUser->second);
 					else if (returner > 0 && itUser->second->getUserStatus() == false && itUser->second->getPasswordStatus() == true && itUser->second->getNickStatus() == true)
-					{
-						if (returner == 1)
-						{
-							std::vector<std::string>::iterator it = _splited.begin();
-							++it;
-							itUser->second->MakeTrue("USER");
-							itUser->second->CompleteUser(itUser->second->getNickname(), *it);
-							send(clientSocket, Print(GoodUser).c_str(), Print(GoodUser).length(), 0);
-							UpNbClients();
-							setClientConnected(1);
-							WelcomeToIrc(clientSocket, itUser->second);
-						}
-					}
+						UserStep(clientSocket, returner, itUser->second);
 					else if (message == "HELPER\r\n" || message == "HELPER\n")
-						send(clientSocket, Print(HELP_MESSAGE).c_str(), Print(HELP_MESSAGE).length(), 0);
+						send_msg(clientSocket, HELP_MESSAGE);
 					else
-						send(clientSocket, Print(ERR_USELESS).c_str(), Print(ERR_USELESS).length(), 0);
+						send_msg(clientSocket, ERR_USELESS);
 					returner = 0;
 				}
-				else 
+				else
 				{
                     buffer[_bytesRead] = '\0';
 					if (_bytesRead > 512)
 					{
-						send(clientSocket, Print(ERR_LENGTH).c_str(), Print(ERR_LENGTH).length(), 0);
+						send_msg(clientSocket, ERR_LENGTH);
 						continue;
 					}
 					else if (message == "\r\n" || message == "\n")
-						send(clientSocket, Print(INVALIDE).c_str(), Print(INVALIDE).length(), 0);
+						send_msg(clientSocket, INVALIDE);
 					else
-						ExectuteIrcCmd(FindCmd(_splited), clientSocket, _splited, getChannel());
+						ExectuteIrcCmd(clientSocket, message, getChannel());
                 }
-				cleanBuffer(buffer, 512);
+				cleanBuffer(buffer, 513);
 				_splited.clear();
             }
         }

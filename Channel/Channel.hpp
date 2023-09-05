@@ -8,7 +8,7 @@
 // Channel //
 
 # define SUCCESS_JOIN(name) ("You join successfuly the channel #" + name + "\r\n")
-# define JOIN_CHANNEL(name, channel) (name + " JOIN :#" + channel + "\r\n")
+# define JOIN_CHANNEL(name, channel) (":" + name + " JOIN #" + channel + "\r\n")
 # define CREATE_CHANNEL(channel) (":channel " + channel + " successfuly created\r\n")
 
 // ERROR //
@@ -51,10 +51,7 @@ class Channel
 		// other function //
 
 		void AddToChannel(User *user, std::string name);
-
-		// copy_user //
-
-		User *CpyUser(User *user);
+		void SendMsgToChannel(std::string message, int socket);
 
 		// geter // const
 
@@ -85,6 +82,8 @@ class Channel
 		void AddChannelAuthorized(User *user);
 		void AddChannelOperator(User *user);
 		void AddInvitedList(User *user);
+
+		void SendTopic(User *user);
 
 		~Channel();
 };

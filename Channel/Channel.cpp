@@ -31,13 +31,14 @@ Channel& Channel::operator=(const Channel& rhs)
     }
 
     // Copie des membres simples
-    _name = rhs._name;
-    _password = rhs._password;
-    _topic = rhs._topic;
-    _invitation = rhs._invitation;
-    _actif_password = rhs._actif_password;
-    _clients_limits = rhs._clients_limits;
-    _sizeofClient = rhs._sizeofClient;
+    _name = rhs.getChannelName();
+    _password = rhs.getChannelPass();
+    _topic = rhs.getChannelTopic();
+	_authorized = rhs.getChannelAuthorized();
+    _invitation = rhs.getChannelInvitation();
+    _actif_password = rhs.getChannelActifPass();
+    _clients_limits = rhs.getChannelClientsLimits();
+    _sizeofClient = rhs.getChannelSizeofClients();
 
     return *this;
 }
@@ -59,14 +60,26 @@ void Channel::AddToChannel(User *user, std::string name)
 			send(n_socket, welcome_to_channel.c_str(), welcome_to_channel.length(), 0);
 		delete users;
 	}
-	send(user->getClientSocket(), welcome_to_channel.c_str(), welcome_to_channel.length(), 0);
-	send(user->getClientSocket(), getChannelTopic().c_str(), getChannelTopic().length(), 0);
+	SendTopic(user);
 }
 
-User *Channel::CpyUser(User *user)
+void Channel::SendMsgToChannel(std::string message, int socket)
 {
-	User *n_user = new User(*user);
-	return (n_user);
+	for (std::vector<User *>::iterator socke = _authorized.begin(); socke != _authorized.end(); ++socke)
+	{
+		User *use = CpyUser(*socke);
+		if (socket != use->getClientSocket())
+			send_msg(use->getClientSocket(), message);
+		delete use;
+	}
+}
+
+void Channel::SendTopic(User *user)
+{
+	if (getChannelTopic() == "")
+		send_msg(user->getClientSocket(), RPL_NOTOPIC(user->getNickname(), getChannelName()));
+	else
+		send_msg(user->getClientSocket(), RPL_TOPIC(user->getNickname(), getChannelName(), getChannelTopic()));
 }
 
 // geter //

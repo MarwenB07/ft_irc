@@ -5,13 +5,14 @@ User::User(void)
 
 }
 
-User::User(int clientSocket, std::string host) : _clientSocket(clientSocket), _host(host)
+User::User(int clientSocket, std::string host) : _clientSocket(clientSocket)
 {
 	_nickStatus = false;
 	_passwordStatus = false;
 	_userStatus = false;
 	_nickname = "NULL_NICKNAME";
 	_username = "NULL_USERNAME";
+	_host = host;
 }
 
 User::User( User const & src )
