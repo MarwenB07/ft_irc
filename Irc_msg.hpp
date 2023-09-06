@@ -57,6 +57,10 @@ ERR_NOSUCHCHANNEL               ERR_TOOMANYCHANNELS
 					/* Error Macro in Irc */
 
 // 448
+					/* Other default message */
+
+# define KICKED(channel) ("You've been kicked from #" + channel + "\r\n")
+# define KICKED_MESSAGE(channel, reason) ("You've been kicked from #" + channel + " " + reason + "\r\n")
 
 
 

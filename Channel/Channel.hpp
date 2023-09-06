@@ -38,6 +38,8 @@ class Channel
 		bool _actif_password;
 		int  _clients_limits;
 		int  _sizeofClient;
+
+		
 		
 	public:
 		// constructor //
@@ -52,6 +54,7 @@ class Channel
 
 		void AddToChannel(User *user, std::string name);
 		void SendMsgToChannel(std::string message, int socket);
+		bool VerifVector(std::vector<User *> all_users, User *user);
 
 		// geter // const
 

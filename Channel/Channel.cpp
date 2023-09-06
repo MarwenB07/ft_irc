@@ -89,6 +89,29 @@ void Channel::KickUser(User *user, std::string reason, int c)
 {
 	// reason = 1
 	// just kick == 0 and don't care of reason string
+	if (VerifVector(_operator_list, user) == true)
+		_operator_list.erase(std::remove(_operator_list.begin(), _operator_list.end(), user), __operator_list.end());
+	_authorized.erase(std::remove(_authorized.begin(), _authorized.end(), user), _authorized.end());
+	if (c == 0)
+		send_msg(user->getClientSocket(), KICKED(getChannelName()));
+	else
+		send_msg(user->getClientSocket(), KICKED_MESSAGE(getChannelName(), reason));
+
+}
+
+bool Channel::VerifVector(std::vector<User *> all_users, User *user)
+{
+	for (std::vector<User *>::iterator it = all_users.begin(); it != all_users.end(); ++it)
+	{
+		User *use = CpyUser(*it);
+		if (user->getNickname() == use->getNickname())
+		{
+			delete use;
+			return (true);
+		}
+		delete use;
+	}
+	return (false)
 }
 
 // geter //
