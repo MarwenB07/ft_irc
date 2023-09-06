@@ -431,6 +431,11 @@ std::map<std::string, Channel *> Server::getChannel(void) const
 	return (_channel);
 }
 
+std::map<int, User *> Server::getUser(void) const
+{
+	return (_users);
+}
+
 void Server::UpNbClients(void)
 {
 	_nbClient += 1;

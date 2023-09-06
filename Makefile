@@ -14,9 +14,12 @@ SRC =	ft_irc.cpp \
 		Server/Server.cpp \
 		Server/ServHelp.cpp \
 		Server/ServerTrash.cpp \
+		Server/AllCheck.cpp \
 		Commande/Execute.cpp \
 		Commande/Join.cpp \
+		Commande/Topic.cpp \
 		Commande/PrivateMsg.cpp \
+		Commande/Kick.cpp \
 		Commande/Find.cpp \
 		User/User.cpp \
 		Channel/Channel.cpp

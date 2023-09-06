@@ -9,8 +9,8 @@ Channel::Channel(std::string ChannelName, User *user) : _name(ChannelName)
 {
 	_actif_password = false;
 	_invitation = false;
-	_topic = "";
-	_channel_mode_list = "";
+	_topic = "\r\n";
+	_channel_mode_list = "\r\n";
 	_sizeofClient = 1;
 	_clients_limits = 20;
 	_operator_list.push_back(user);
@@ -36,6 +36,7 @@ Channel& Channel::operator=(const Channel& rhs)
     _topic = rhs.getChannelTopic();
 	_authorized = rhs.getChannelAuthorized();
     _invitation = rhs.getChannelInvitation();
+	_operator_list = rhs.getChannelOperator();
     _actif_password = rhs.getChannelActifPass();
     _clients_limits = rhs.getChannelClientsLimits();
     _sizeofClient = rhs.getChannelSizeofClients();
@@ -46,20 +47,14 @@ Channel& Channel::operator=(const Channel& rhs)
 
 void Channel::AddToChannel(User *user, std::string name)
 {
-	int n_socket;
-	std::string welcome_to_channel = name;
-	welcome_to_channel.append(" JOIN #");
-	welcome_to_channel.append(getChannelName());
-	welcome_to_channel.append("\r\n");
-
 	for (std::vector<User *>::iterator it = _authorized.begin(); it != _authorized.end(); ++it)
 	{
 		User *users = CpyUser(*it);
-		n_socket = users->getClientSocket();
-		if (user->getClientSocket() != n_socket)
-			send(n_socket, welcome_to_channel.c_str(), welcome_to_channel.length(), 0);
+		if (user->getClientSocket() != users->getClientSocket())
+			send_msg(users->getClientSocket(), JOIN_CHANNEL(user->getNickname(), name));
 		delete users;
 	}
+	send_msg(user->getClientSocket(), JOIN_CHANNEL(user->getNickname(), _name));
 	SendTopic(user);
 }
 
@@ -76,8 +71,11 @@ void Channel::SendMsgToChannel(std::string message, int socket)
 
 void Channel::SendTopic(User *user)
 {
-	if (getChannelTopic() == "")
+	if (getChannelTopic() == "\r\n")
+	{
+		std::cout << "topic" << std::endl;
 		send_msg(user->getClientSocket(), RPL_NOTOPIC(user->getNickname(), getChannelName()));
+	}
 	else
 		send_msg(user->getClientSocket(), RPL_TOPIC(user->getNickname(), getChannelName(), getChannelTopic()));
 }
@@ -120,11 +118,6 @@ std::vector<User *> Channel::getChannelOperator(void) const
 std::vector<User *> Channel::getInvitedList(void) const
 {
 	return (_invited);
-}
-
-std::vector<std::string> Channel::getBanList(void) const
-{
-	return (_BanList);
 }
 
 bool Channel::getChannelInvitation(void) const
@@ -186,12 +179,8 @@ void Channel::setChannelActifPass(bool set)
 
 void Channel::AddChannelAuthorized(User *user)
 {
+	std::cout << "added" << std::endl;
 	this->_authorized.push_back(user);
-}
-
-void Channel::AddBanUser(User *user)
-{
-	this->_BanList.push_back(user->getNickname());
 }
 
 void Channel::AddChannelOperator(User *user)

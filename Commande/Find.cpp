@@ -10,6 +10,10 @@ int Server::FindCmd(std::vector<std::string> message)
 		return (1);
 	else if (*it == "JOIN")
 		return (2);
+	else if (*it == "TOPIC")
+		return (3);
+	else if (*it == "KICK")
+		return (4);
 	return (-1);
 }
 

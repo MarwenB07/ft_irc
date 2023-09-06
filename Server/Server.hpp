@@ -123,30 +123,42 @@ class Server
 		int FindCmd(std::vector<std::string> message);
 		int FindSocket(std::string name);
 
-		// PRIVMSG
+		// PRIVMSG //
 
 		std::vector<std::string> catch_nickname(std::vector<std::string> buffer);
 		void PrivateMsg(std::map<int, User *> users, std::vector<std::string> buffer, int socket, std::map<std::string, Channel *> channelist);
+
+		// TOPIC //
+
+		void Topic(User *user, std::map<std::string, Channel *> channel, std::string line);
 
 		// Execute //
 
 		void ExectuteIrcCmd(int socket, std::string message, std::map<std::string, Channel *> channel);
 
-		// Join //
+		// JOIN //
 
-		bool AlreadyInChannel(int socket, std::string channelname);
-		bool checkInvitation(int socket, std::string name, std::map<std::string, Channel *> canal);
-		bool checkNameOfChannel(std::string channel);
-		bool ChannelAlreadyExists(std::string channel, std::map<std::string, Channel *> channel_list);
 		void Join(int socket, std::vector<std::string> split, std::map<std::string, Channel *> channel);
 		void JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel *> channel);
 		void CreateChannel(User *user, std::string name);
+
+		// KICK //
+
+		void Kick(User *user, std::map<std::string, Channel *> channel, std::string line);
 
 		// Trash //
 
 		void UserStep(int socket, int returner, User *user);
 		void NickStep(int socket, int returner, User *user);
 		void PassStep(int socket, std::string message, int returner, User *user);
+
+		// Check //
+
+		bool checkIsOperator(User *user, Channel *channel);
+		bool AlreadyInChannel(User *user, Channel *channel);
+		bool checkIsInvited(User *user, Channel *channel);
+		bool checkNameOfChannel(std::string channel);
+		bool ChannelAlreadyExists(std::string channel, std::map<std::string, Channel *> channel_list, int c);
 	
 	public:
 		// constructor //
@@ -172,7 +184,7 @@ class Server
 		std::string getServerVersion(void) const;
 		time_t getTime(void) const;
 		std::map<std::string, Channel *> getChannel(void) const;
-
+		std::map<int, User *> getUser(void) const;
 		void UpNbClients(void);
 		void setClientConnected(int set);
 
@@ -184,9 +196,5 @@ class Server
 
 		~Server();
 };
-
-User *CpyUser(User *user);
-std::string visiblechar(char *buffer);
-void send_msg(int socket, std::string message);
 
 #endif

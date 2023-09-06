@@ -2,7 +2,7 @@
 
 // bug niveau des PRIVMSG avec un canal le vector _authorized enregistre la socket dans AddChannel mais apres elle oublie cette connasse
 
-static std::string takeMessage(std::string message)
+std::string takeMessage(std::string message)
 {
 	int i = 0;
 
@@ -56,7 +56,7 @@ void Server::PrivateMsg(std::map<int, User *> users, std::vector<std::string> bu
 		for (std::vector<std::string>::iterator it = nickmame.begin(); it != nickmame.end(); ++it)
 		{
 			first = *it;
-			if (ChannelAlreadyExists(first, _channel) == true)
+			if (ChannelAlreadyExists(first, _channel, 0) == true)
 			{
 				std::map<std::string, Channel *>::iterator channel = channelist.find(first.c_str() + 1);
 				channel->second->SendMsgToChannel(PRIVMSG_CHANNEL(cuser->second->getNickname(), first, sended_message), socket);
