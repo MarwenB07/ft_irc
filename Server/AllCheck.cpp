@@ -66,10 +66,37 @@ bool Server::checkIsOperator(User *user, Channel *channel)
 	while (operator_list != list.end())
 	{
 		User *use = CpyUser(*operator_list);
-		if (use->getClientSocket() == user->getClientSocket())
+		if (use->getClientSocket() == user->getClientSocket() || user->getNickname() == channel->getChannelCreator())
 			return (true);
 		delete use;
 		++operator_list;
+	}
+	return (false);
+}
+
+bool Server::checkUserExist(std::string nickname)
+{
+	for (std::vector<std::string>::iterator it = _users_nick_list.begin(); it != _users_nick_list.end(); ++it)
+	{
+		if (nickname == *it)
+			return (true);
+	}
+	return (false);
+}
+
+bool Server::checkIsCreator(User *user, Channel *channel)
+{
+	std::vector<User *> list = channel->getChannelAuthorized();
+	std::vector<User *>::iterator user_list = list.begin();
+
+	while (user_list != list.end())
+	{
+		User *use = CpyUser(*user_list);
+		std::cout << use->getNickname() << " == " << user->getNickname() << std::endl;
+		if (use->getNickname() == channel->getChannelCreator())
+			return (true);
+		delete use;
+		++user_list;
 	}
 	return (false);
 }

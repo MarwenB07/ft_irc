@@ -27,6 +27,7 @@ class Channel
 {
 	private:
 		std::string _name;
+		std::string _channel_creator;
 		std::string _password;
 		std::string _topic;
 		std::string _channel_mode_list;
@@ -58,6 +59,7 @@ class Channel
 		std::string getChannelPass(void) const;
 		std::string getChannelTopic(void) const;
 		std::string getChannelMode(void) const;
+		std::string getChannelCreator(void) const;
 		std::vector<User *> getChannelAuthorized(void) const;
 		std::vector<User *> getChannelOperator(void) const;
 		std::vector<User *> getInvitedList(void) const;
@@ -80,7 +82,13 @@ class Channel
 		void AddChannelOperator(User *user);
 		void AddInvitedList(User *user);
 
+		// Topic //
+
 		void SendTopic(User *user);
+
+		// Kick //
+
+		void KickUser(User *user, std::string reason, int c);
 
 		~Channel();
 };

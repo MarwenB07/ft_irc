@@ -31,10 +31,7 @@ int Server::tryPassword(std::vector<std::string> str, int socket)
 		return (-1);
 	++it;
 	if (*it != getPassword())
-	{
-		send(socket, Print(ERR_PASS).c_str(), Print(ERR_PASS).length(), 0);
-		return (2);
-	}
+		return (send_msg(socket, ERR_PASS), 2);
 	return (1);
 }
 
@@ -62,36 +59,21 @@ int Server::tryNick(std::vector<std::string> str, std::map<int, User *> user, in
 	// note : verifier les non-ascii ( #$@^&* etc ... ) //
 	
 	if (nickname.length() > 9 || nickname.length() < 3)
-	{
-		send(socket, Print(ERR_NICKLENGTH).c_str(), Print(ERR_NICKLENGTH).length(), 0);
-		return (2);
-	}
-
+		return(send_msg(socket, ERR_NICKLENGTH), 2);
 	for (int i = 0; none_first.c_str()[i]; i++)
 	{
 		if (nickname.find(none_first.c_str()[i]) < 1)
-		{
-			send(socket, Print(ERR_NICK).c_str(), Print(ERR_NICK).length(), 0);
-			return (2);
-		}
+			return (send_msg(socket, ERR_NICK), 2);
 	}
-
 	for (int i = 0; unauthorised.c_str()[i]; i++)
 	{
 		if (nickname.find(unauthorised.c_str()[i]) <= nickname.length())
-		{
-			send(socket, Print(ERR_NICK).c_str(), Print(ERR_NICK).length(), 0);
-			return (2);
-		}
+			return (send_msg(socket, ERR_NICK), 2);
 	}
-
 	for (it = user.begin(); it != user.end() ;++it)
 	{
 		if (it->second->getNickname() != "NULL_NICKNAME" && it->second->getNickname() == nickname && it->second->getClientSocket() != socket)
-		{
-			send(socket, Print(ERR_NICKSAME).c_str(), Print(ERR_NICKSAME).length(), 0);
-			return (2);
-		}
+			return (send_msg(socket, ERR_NICKSAME), 2);
 	}
 	return (1);
 }
@@ -118,19 +100,13 @@ int Server::tryUser(std::vector<std::string> str, int socket)
 	for (int i = 0; none_first.c_str()[i]; i++)
 	{
 		if (username.find(none_first.c_str()[i]) < 1)
-		{
-			send(socket, Print(ERR_USER).c_str(), Print(ERR_USER).length(), 0);
-			return (2);
-		}
+			return (send_msg(socket, ERR_USER), 2);
 	}
 
 	for (int i = 0; unauthorised.c_str()[i]; i++)
 	{
 		if (username.find(unauthorised.c_str()[i]) != std::string::npos)
-		{
-			send(socket, Print(ERR_USER).c_str(), Print(ERR_USER).length(), 0);
-			return (2);
-		}
+			return (send_msg(socket, ERR_USER), 2);
 	}
 
 	++it;
@@ -151,10 +127,7 @@ int Server::tryUser(std::vector<std::string> str, int socket)
 			if (username.find(i, 1) != std::string::npos || username.find(i - 32, 1) != std::string::npos)
 				break;
 			else if (i == 'z')
-			{
-				send(socket, Print(ERR_USER).c_str(), Print(ERR_USER).length(), 0);
-				return (2);
-			}
+				return (send_msg(socket, ERR_USER), 2);
 		}
 	}
 
@@ -168,10 +141,7 @@ int Server::tryUser(std::vector<std::string> str, int socket)
 			if (username.find(i) != std::string::npos || username.find(i - 32) != std::string::npos)
 				break;
 			else if (i == 'z')
-			{
-				send(socket, Print(ERR_USER).c_str(), Print(ERR_USER).length(), 0);
-				return (2);
-			}
+				return (send_msg(socket, ERR_USER), 2);
 		}
 	}
 	return (1);
@@ -424,6 +394,16 @@ int Server::getClientSocket(void) const
 	return (_clientSocket);
 }
 
+std::vector<std::string> Server::getUserNickList(void) const
+{
+	return (_users_nick_list);
+}
+
+std::vector<User *> Server::getUserClassList(void) const
+{
+	return (_users_class_list);
+}
+
 // get my channel  //
 
 std::map<std::string, Channel *> Server::getChannel(void) const
@@ -444,6 +424,16 @@ void Server::UpNbClients(void)
 void Server::setClientConnected(int set)
 {
 	_actually_connected += set;
+}
+
+void Server::AddUserNickList(std::string set)
+{
+	_users_nick_list.push_back(set);
+}
+
+void Server::AddUserClassList(User *user)
+{
+	_users_class_list.push_back(CpyUser(user));
 }
 
 /* destructor */

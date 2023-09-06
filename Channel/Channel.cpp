@@ -7,6 +7,7 @@ Channel::Channel()
 
 Channel::Channel(std::string ChannelName, User *user) : _name(ChannelName)
 {
+	_channel_creator = user->getNickname();
 	_actif_password = false;
 	_invitation = false;
 	_topic = "\r\n";
@@ -47,6 +48,9 @@ Channel& Channel::operator=(const Channel& rhs)
 
 void Channel::AddToChannel(User *user, std::string name)
 {
+	// check client limit //
+	// supp les invited //
+
 	for (std::vector<User *>::iterator it = _authorized.begin(); it != _authorized.end(); ++it)
 	{
 		User *users = CpyUser(*it);
@@ -56,6 +60,7 @@ void Channel::AddToChannel(User *user, std::string name)
 	}
 	send_msg(user->getClientSocket(), JOIN_CHANNEL(user->getNickname(), _name));
 	SendTopic(user);
+	setChannelSizeofClients(getChannelSizeofClients() + 1);
 }
 
 void Channel::SendMsgToChannel(std::string message, int socket)
@@ -78,6 +83,12 @@ void Channel::SendTopic(User *user)
 	}
 	else
 		send_msg(user->getClientSocket(), RPL_TOPIC(user->getNickname(), getChannelName(), getChannelTopic()));
+}
+
+void Channel::KickUser(User *user, std::string reason, int c)
+{
+	// reason = 1
+	// just kick == 0 and don't care of reason string
 }
 
 // geter //
@@ -104,6 +115,10 @@ std::string Channel::getChannelMode(void) const
 	return(_channel_mode_list);
 }
 
+std::string Channel::getChannelCreator(void) const
+{
+	return (_channel_creator);
+}
 
 std::vector<User *> Channel::getChannelAuthorized(void) const
 {

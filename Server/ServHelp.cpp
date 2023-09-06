@@ -11,13 +11,6 @@ std::string Server::s_itoa(int number)
 	return (returner);
 }
 
-// print error message when the client send a message with more character than 512 //
-
-std::string Server::Print(std::string string) const
-{
-	return (string);
-}
-
 // clean my buffer for recv //
 
 void Server::cleanBuffer(char *buffer, int len)
@@ -192,6 +185,11 @@ void Server::sends_msg(int socket, std::string message, std::vector<User *> all,
 void send_msg(int socket, std::string message)
 {
 	send(socket, message.c_str(), message.size(), 0);
+}
+
+User *Server::FindUser(std::string nickname)
+{
+	
 }
 
 User *CpyUser(User *user)

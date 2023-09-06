@@ -97,7 +97,9 @@ class Server
 		std::map<int, User *> _users;
 		std::map<std::string, Channel *> _channel;
 		std::vector<int> _clients;
+		std::vector<std::string> _users_nick_list;
 		std::vector<std::string> _splited;
+		std::vector<User *> _users_class_list;
 
 		// private function //
 
@@ -111,7 +113,6 @@ class Server
 
 		void cleanBuffer(char *buffer, int len);
 		std::string makeIdenticalChat(char *buffer, std::string name);
-		std::string Print(std::string string) const;
 
 		// ServerHelp //
 
@@ -158,8 +159,21 @@ class Server
 		bool AlreadyInChannel(User *user, Channel *channel);
 		bool checkIsInvited(User *user, Channel *channel);
 		bool checkNameOfChannel(std::string channel);
+		bool checkIsCreator(User *user, Channel *channel);
+		bool checkUserExist(std::string nickname);
 		bool ChannelAlreadyExists(std::string channel, std::map<std::string, Channel *> channel_list, int c);
-	
+
+		// Add //
+
+		void AddUserNickList(std::string set);
+		void AddUserClassList(User *user);
+		void setClientConnected(int set);
+		void UpNbClients(void);
+
+		// Find //
+
+		User *FindUser(std::string nickname);
+
 	public:
 		// constructor //
 
@@ -182,11 +196,11 @@ class Server
 		std::string getMessage(void) const;
 		std::string getServerName(void) const;
 		std::string getServerVersion(void) const;
+		std::vector<User *> getUserClassList(void) const;
 		time_t getTime(void) const;
+		std::vector<std::string> getUserNickList(void) const;
 		std::map<std::string, Channel *> getChannel(void) const;
 		std::map<int, User *> getUser(void) const;
-		void UpNbClients(void);
-		void setClientConnected(int set);
 
 		void sends_msg(int socket, std::string message, std::vector<User *> all, int open);
 
