@@ -30,47 +30,40 @@ void Server::CreateChannel(User *user, std::string name)
 
 void Server::JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel *> channel)
 {
-	std::cout << "start" << std::endl;
 	std::map<std::string, Channel *>::iterator canal = channel.find(name);
 	std::map<int, User *>::iterator user = _users.find(socket);
 	if (canal->second->getChannelInvitation() == true)
 	{
-		std::cout << "hmmmmmm bizzar" << std::endl;
 		if (checkIsInvited(user->second, canal->second) == false)
 			return (send_msg(socket, NOT_INVITED));
-		std::cout << "pass" << std::endl;
 	}
 		//send_msg(socket, )
-		std::cout << "hmmmmm ..." << std::endl;
 	if (AlreadyInChannel(user->second, canal->second) == true)
-	{
-		std::cout << "NANI" << std::endl;
 		send_msg(socket, ALREADY_IN_CHANNEL(name));
-	}
 	else
 	{
 		canal->second->AddToChannel(user->second, nickname);
 		canal->second->AddChannelAuthorized(user->second);
+		if (checkIsInvited(user->second, canal->second) == true)
+			canal->second->DeleteInvited(user->second);
 	}
 }
 
 void Server::Join(int socket, std::vector<std::string> split, std::map<std::string, Channel *> channel)
 {
-	int i = 0;
 	std::string word;
 	std::vector<std::string> channelname;
 	std::vector<std::string>::iterator w = split.begin();
 	std::map<int, User *>::iterator user = _users.find(socket);
 
-	for (std::vector<std::string>::iterator count = split.begin(); count != split.end(); ++count)
-	{
-		i++;
-	}
 	++w;
 	word = *w;
 	channelname = newSplit(word, ",");
-
-	if (i == 2)
+	if (split.size() == 2 && word == "0\r\n")
+	{
+		// PART avec tous les channel
+	}
+	else if (split.size() == 2)
 	{
 		for (std::vector<std::string>::iterator it = channelname.begin(); it != channelname.end(); ++it)
 		{
@@ -88,7 +81,7 @@ void Server::Join(int socket, std::vector<std::string> split, std::map<std::stri
 			}
 		}
 	}
-	else if (i == 3)
+	else if (split.size() == 3)
 	{
 		std::cout << "jejeje" << std::endl;
 		return ;

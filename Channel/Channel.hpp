@@ -31,6 +31,7 @@ class Channel
 		std::string _password;
 		std::string _topic;
 		std::string _channel_mode_list;
+		std::map<std::string,std::string> _user_mode;
 		std::vector<User *> _invited;
 		std::vector<User *> _authorized;
 		std::vector<User *> _operator_list;
@@ -39,8 +40,6 @@ class Channel
 		int  _clients_limits;
 		int  _sizeofClient;
 
-		
-		
 	public:
 		// constructor //
 		Channel();
@@ -63,6 +62,7 @@ class Channel
 		std::string getChannelTopic(void) const;
 		std::string getChannelMode(void) const;
 		std::string getChannelCreator(void) const;
+		std::map<std::string,std::string> getUserModeList(void) const;
 		std::vector<User *> getChannelAuthorized(void) const;
 		std::vector<User *> getChannelOperator(void) const;
 		std::vector<User *> getInvitedList(void) const;
@@ -91,7 +91,15 @@ class Channel
 
 		// Kick //
 
-		void KickUser(User *user, std::string reason, int c);
+		void KickUser(User *user, User *sender, std::string reason, int c);
+
+		// Part //
+
+		void PartChannel(User *user, Channel *channel);
+
+		// Join //
+
+		void DeleteInvited(User *user);
 
 		~Channel();
 };

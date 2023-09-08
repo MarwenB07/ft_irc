@@ -41,6 +41,10 @@ Channel& Channel::operator=(const Channel& rhs)
     _actif_password = rhs.getChannelActifPass();
     _clients_limits = rhs.getChannelClientsLimits();
     _sizeofClient = rhs.getChannelSizeofClients();
+	_channel_creator = rhs.getChannelCreator();
+	_channel_mode_list = rhs.getChannelMode();
+	_user_mode = rhs.getUserModeList();
+	_invited = rhs.getInvitedList();
 
     return *this;
 }
@@ -85,18 +89,25 @@ void Channel::SendTopic(User *user)
 		send_msg(user->getClientSocket(), RPL_TOPIC(user->getNickname(), getChannelName(), getChannelTopic()));
 }
 
-void Channel::KickUser(User *user, std::string reason, int c)
+void Channel::KickUser(User *user, User *sender, std::string reason, int c)
 {
-	// reason = 1
-	// just kick == 0 and don't care of reason string
+	std::cout << "kickuser used" << std::endl;
 	if (VerifVector(_operator_list, user) == true)
-		_operator_list.erase(std::remove(_operator_list.begin(), _operator_list.end(), user), __operator_list.end());
+		_operator_list.erase(std::remove(_operator_list.begin(), _operator_list.end(), user), _operator_list.end());
 	_authorized.erase(std::remove(_authorized.begin(), _authorized.end(), user), _authorized.end());
 	if (c == 0)
-		send_msg(user->getClientSocket(), KICKED(getChannelName()));
+		send_msg(user->getClientSocket(), KICKED(sender->getNickname(), getChannelName(), user->getNickname(), reason));
 	else
-		send_msg(user->getClientSocket(), KICKED_MESSAGE(getChannelName(), reason));
+		send_msg(user->getClientSocket(), KICKED(sender->getNickname(), getChannelName(), user->getNickname(), reason.erase(0, 1)));
+}
 
+// en cour ...
+
+void Channel::PartChannel(User *user, Channel *channel)
+{
+	if (VerifVector(_operator_list, user) == true)
+		_operator_list.erase(std::remove(_operator_list.begin(), _operator_list.end(), user), _operator_list.end());
+	_authorized.erase(std::remove(_authorized.begin(), _authorized.end(), user), _authorized.end());
 }
 
 bool Channel::VerifVector(std::vector<User *> all_users, User *user)
@@ -111,7 +122,7 @@ bool Channel::VerifVector(std::vector<User *> all_users, User *user)
 		}
 		delete use;
 	}
-	return (false)
+	return (false);
 }
 
 // geter //
@@ -156,6 +167,11 @@ std::vector<User *> Channel::getChannelOperator(void) const
 std::vector<User *> Channel::getInvitedList(void) const
 {
 	return (_invited);
+}
+
+std::map<std::string,std::string>  Channel::getUserModeList(void) const
+{
+	return (_user_mode);
 }
 
 bool Channel::getChannelInvitation(void) const
@@ -235,6 +251,11 @@ void Channel::setChannelMode(std::string set)
 {
 	// check if mode is always here //
 	_channel_mode_list.append(set);
+}
+
+void Channel::DeleteInvited(User *user)
+{
+	this->_invited.erase(std::remove(_invited.begin(), _invited.end(), user), _invited.end());
 }
 
 Channel::~Channel()

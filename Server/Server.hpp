@@ -100,6 +100,7 @@ class Server
 		std::vector<std::string> _users_nick_list;
 		std::vector<std::string> _splited;
 		std::vector<User *> _users_class_list;
+		std::vector<Channel *> _channel_class_list;
 
 		// private function //
 
@@ -147,11 +148,23 @@ class Server
 
 		void Kick(User *user, std::map<std::string, Channel *> channel, std::string line);
 
+		// PART //
+
+		void Part(User *user, std::map<std::string, Channel *> channel, std::string line);
+		void PartOfChannel(User *user, std::map<std::string, Channel *> channel, std::string);
+
+		// INVITE //
+
+		void SendInvitedChannel(User *user, std::vector<Channel *> channel);
+		void Invite(User *user, std::map<std::string, Channel *> channel, std::string line);
+
+		// MODE //
+
 		// Trash //
 
 		void UserStep(int socket, int returner, User *user);
-		void NickStep(int socket, int returner, User *user);
-		void PassStep(int socket, std::string message, int returner, User *user);
+		void NickStep(int socket, std::string message, int returner, User *user);
+		void PassStep(int socket, int returner, User *user);
 
 		// Check //
 
@@ -167,12 +180,14 @@ class Server
 
 		void AddUserNickList(std::string set);
 		void AddUserClassList(User *user);
+		void AddUserClassList(Channel *channel);
 		void setClientConnected(int set);
 		void UpNbClients(void);
 
 		// Find //
 
 		User *FindUser(std::string nickname);
+		Channel *FindChannel(std::string channelname);
 
 	public:
 		// constructor //
@@ -197,6 +212,7 @@ class Server
 		std::string getServerName(void) const;
 		std::string getServerVersion(void) const;
 		std::vector<User *> getUserClassList(void) const;
+		std::vector<Channel *> getChannelClassList(void) const;
 		time_t getTime(void) const;
 		std::vector<std::string> getUserNickList(void) const;
 		std::map<std::string, Channel *> getChannel(void) const;

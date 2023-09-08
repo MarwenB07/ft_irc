@@ -22,7 +22,7 @@ void Server::Topic(User *user, std::map<std::string, Channel *> channel, std::st
 	std::map<std::string, Channel *>::iterator ActualChannel = channel.find(word.c_str() + 1);
 	if (AlreadyInChannel(user, ActualChannel->second) == false)
 		return (send_msg(user->getClientSocket(), ERR_NOTONCHANNEL(user->getNickname(), word)));
-	else if (checkIsOperator(user, ActualChannel->second) == false /* && check +t */)
+	else if (checkIsOperator(user, ActualChannel->second) == false && ActualChannel->second->getChannelMode().find("t") != std::string::npos)
 		return (send_msg(user->getClientSocket(), ERR_CHANOPRIVSNEEDED(user->getNickname(), word)));
 
 	++list;

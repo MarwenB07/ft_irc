@@ -3,18 +3,16 @@
 bool Server::AlreadyInChannel(User *user, Channel *channel)
 {
 	std::vector<User *> list = channel->getChannelAuthorized();
-	std::vector<User *>::iterator user_list = list.begin();
 
-	std::cout << "autorized = [" << list.size() << "]" << std::endl;
-
-	while (user_list != list.end())
+	for (std::vector<User *>::iterator user_list = list.begin(); user_list != list.end(); ++user_list)
 	{
 		User *use = CpyUser(*user_list);
-		std::cout << use->getNickname() << " == " << user->getNickname() << std::endl;
 		if (use->getNickname() == user->getNickname())
+		{
+			delete use;
 			return (true);
+		}
 		delete use;
-		++user_list;
 	}
 	return (false);
 }
@@ -28,7 +26,6 @@ bool Server::ChannelAlreadyExists(std::string channel, std::map<std::string, Cha
 		chan.erase(0, 1);
 	for (std::map<std::string, Channel *>::iterator it = channel_list.begin(); it != channel_list.end(); ++it)
 	{
-		std::cout << it->second->getChannelName() << " == " << chan << std::endl;
 		if (it->second->getChannelName() == chan)
 			return (true);
 	}
@@ -86,17 +83,7 @@ bool Server::checkUserExist(std::string nickname)
 
 bool Server::checkIsCreator(User *user, Channel *channel)
 {
-	std::vector<User *> list = channel->getChannelAuthorized();
-	std::vector<User *>::iterator user_list = list.begin();
-
-	while (user_list != list.end())
-	{
-		User *use = CpyUser(*user_list);
-		std::cout << use->getNickname() << " == " << user->getNickname() << std::endl;
-		if (use->getNickname() == channel->getChannelCreator())
-			return (true);
-		delete use;
-		++user_list;
-	}
+	if (user->getNickname() == channel->getChannelCreator())
+		return (true);
 	return (false);
 }

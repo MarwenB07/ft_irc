@@ -293,9 +293,9 @@ int Server::StartServer( void )
 						continue;
 					}
 					else if (returner > 0 && itUser->second->getPasswordStatus() == false)
-						NickStep(clientSocket, returner, itUser->second);
+						PassStep(clientSocket, returner, itUser->second);
 					else if (returner > 0 && itUser->second->getPasswordStatus() == true && itUser->second->getNickStatus() == false)
-						PassStep(clientSocket, message, returner, itUser->second);
+						NickStep(clientSocket, message, returner, itUser->second);
 					else if (returner > 0 && itUser->second->getUserStatus() == false && itUser->second->getPasswordStatus() == true && itUser->second->getNickStatus() == true)
 						UserStep(clientSocket, returner, itUser->second);
 					else if (message == "HELPER\r\n" || message == "HELPER\n")
@@ -354,6 +354,11 @@ int Server::getNbClient(void) const
 std::string Server::getPassword(void) const
 {
 	return (_password);
+}
+
+std::vector<Channel *> Server::getChannelClassList(void) const
+{
+	return (_channel_class_list);
 }
 
 std::string Server::getServerVersion(void) const
@@ -434,6 +439,11 @@ void Server::AddUserNickList(std::string set)
 void Server::AddUserClassList(User *user)
 {
 	_users_class_list.push_back(CpyUser(user));
+}
+
+void Server::AddUserClassList(Channel *channel)
+{
+	_channel_class_list.push_back(CpyChannel(channel));
 }
 
 /* destructor */

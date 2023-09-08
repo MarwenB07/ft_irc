@@ -59,7 +59,8 @@ void Server::PrivateMsg(std::map<int, User *> users, std::vector<std::string> bu
 			if (ChannelAlreadyExists(first, _channel, 0) == true)
 			{
 				std::map<std::string, Channel *>::iterator channel = channelist.find(first.c_str() + 1);
-				channel->second->SendMsgToChannel(PRIVMSG_CHANNEL(cuser->second->getNickname(), first, sended_message), socket);
+				if (AlreadyInChannel(cuser->second, channel->second) == true)
+					channel->second->SendMsgToChannel(PRIVMSG_CHANNEL(cuser->second->getNickname(), first, sended_message), socket);
 			}
 			else
 				send_msg(socket, UNKNOW_CHANNEL(first)); 

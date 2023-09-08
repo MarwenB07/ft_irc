@@ -6,7 +6,7 @@ NAME = ircserv
 
 CPP = @c++
 
-CXXFLAGS = -Wall -Wextra -Werror #-std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 
 # ---- SRC / OBJS ---- #
 
@@ -18,6 +18,9 @@ SRC =	ft_irc.cpp \
 		Commande/Execute.cpp \
 		Commande/Join.cpp \
 		Commande/Topic.cpp \
+		Commande/Part.cpp \
+		Commande/Mode.cpp \
+		Commande/Invite.cpp \
 		Commande/PrivateMsg.cpp \
 		Commande/Kick.cpp \
 		Commande/Find.cpp \
