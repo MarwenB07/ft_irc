@@ -172,12 +172,8 @@ std::string visiblechar(char *buffer)
 void Server::sends_msg(int socket, std::string message, std::vector<User *> all, int open)
 {
 	for (std::vector<User *>::iterator it = all.begin(); it != all.end(); ++it)
-	{
-		User *user = CpyUser(*it);
-		if (user->getClientSocket() != socket)
-		send(user->getClientSocket(), message.c_str(), message.size(), 0);
-		delete user;
-	}
+		if ((*it)->getClientSocket() != socket)
+			send((*it)->getClientSocket(), message.c_str(), message.size(), 0);
 	if (open == 0)
 		send(socket, message.c_str(), message.size(), 0);
 }
@@ -189,32 +185,17 @@ void send_msg(int socket, std::string message)
 
 User *Server::FindUser(std::string nickname)
 {
-	User *user;
-
 	for (std::vector<User *>::iterator it = _users_class_list.begin(); it != _users_class_list.end(); ++it)
-	{
-		user = CpyUser(*it);
-		if (user->getNickname() == nickname)
-			return (user);
-		delete user;
-	}
-	std::cout << "error" << std::endl;
-	return (user);
+		if ((*it)->getNickname() == nickname)
+			return ((*it));
+	return (NULL);
 }
 
 Channel *Server::FindChannel(std::string channelname)
 {
-	Channel *channel;
-
-	for (std::vector<Channel *>::iterator it = _channel_class_list.begin(); it != _channel_class_list.end(); ++it)
-	{
-		channel = CpyChannel(*it);
-		if (channel->getChannelName() == channelname)
-			return (channel);
-		delete channel;
-	}
-	std::cout << "error" << std::endl;
-	return (channel);
+	std::cout << channelname << std::endl;
+	std::map<std::string, Channel *>::iterator it = _channel.find(channelname);
+	return (it->second);
 }
 
 User *CpyUser(User *user)

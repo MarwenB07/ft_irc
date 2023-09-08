@@ -25,7 +25,27 @@ void Server::CreateChannel(User *user, std::string name)
 		name.erase(0, 1);
 		send_msg(user->getClientSocket(), JOIN_CHANNEL(user->getNickname(), name));
 		_channel.insert(std::make_pair(name, new Channel(name, user)));
+		std::map<std::string, Channel *>::iterator chan = _channel.find(name);
+		_channel_class_list.push_back(chan->second);
 	}
+}
+
+void Server::JoinZero(User *user, std::map<std::string, Channel *> channel)
+{
+	std::string temp = "#";
+
+	for (std::vector<Channel *>::iterator it = _channel_class_list.begin(); it != _channel_class_list.end(); ++it)
+	{
+		if (AlreadyInChannel(user, (*it)) == true)
+		{
+			temp.append((*it)->getChannelName());
+			std::map<std::string, Channel *>::iterator newChan = channel.find(temp);
+			newChan->second->PartChannel(user);
+			send_msg(user->getClientSocket(), PART(user->getNickname(), newChan->first));
+			return (JoinZero(user, channel));
+		}
+	}
+	return ;
 }
 
 void Server::JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel *> channel)
@@ -60,9 +80,7 @@ void Server::Join(int socket, std::vector<std::string> split, std::map<std::stri
 	word = *w;
 	channelname = newSplit(word, ",");
 	if (split.size() == 2 && word == "0\r\n")
-	{
-		// PART avec tous les channel
-	}
+		JoinZero(user->second, channel);
 	else if (split.size() == 2)
 	{
 		for (std::vector<std::string>::iterator it = channelname.begin(); it != channelname.end(); ++it)

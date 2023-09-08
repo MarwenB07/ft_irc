@@ -68,6 +68,7 @@ ERR_NOSUCHCHANNEL               ERR_TOOMANYCHANNELS
 					/* Other default message */
 
 # define KICKED(sender, channel, nick, reason) (":" + sender + " KICK #" + channel + " " + nick + " :" + reason + "\r\n")
+# define PART(nick, channel) (":" + nick + " PART " + channel + "\r\n")
 
 
 
@@ -99,9 +100,6 @@ KICK -
 */
 
 // function //
-
-User *CpyUser(User *user);
-Channel *CpyChannel(Channel *channel);
 
 std::string visiblechar(char *buffer);
 std::string takeMessage(std::string message);

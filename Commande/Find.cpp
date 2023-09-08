@@ -14,6 +14,10 @@ int Server::FindCmd(std::vector<std::string> message)
 		return (3);
 	else if (*it == "KICK")
 		return (4);
+	else if (*it == "INVITE")
+		return (5);
+	else if (*it == "PART")
+		return (6);
 	return (-1);
 }
 

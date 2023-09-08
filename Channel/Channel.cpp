@@ -56,12 +56,8 @@ void Channel::AddToChannel(User *user, std::string name)
 	// supp les invited //
 
 	for (std::vector<User *>::iterator it = _authorized.begin(); it != _authorized.end(); ++it)
-	{
-		User *users = CpyUser(*it);
-		if (user->getClientSocket() != users->getClientSocket())
-			send_msg(users->getClientSocket(), JOIN_CHANNEL(user->getNickname(), name));
-		delete users;
-	}
+		if (user->getClientSocket() != (*it)->getClientSocket())
+			send_msg((*it)->getClientSocket(), JOIN_CHANNEL(user->getNickname(), name));
 	send_msg(user->getClientSocket(), JOIN_CHANNEL(user->getNickname(), _name));
 	SendTopic(user);
 	setChannelSizeofClients(getChannelSizeofClients() + 1);
@@ -70,21 +66,14 @@ void Channel::AddToChannel(User *user, std::string name)
 void Channel::SendMsgToChannel(std::string message, int socket)
 {
 	for (std::vector<User *>::iterator socke = _authorized.begin(); socke != _authorized.end(); ++socke)
-	{
-		User *use = CpyUser(*socke);
-		if (socket != use->getClientSocket())
-			send_msg(use->getClientSocket(), message);
-		delete use;
-	}
+		if (socket != (*socke)->getClientSocket())
+			send_msg((*socke)->getClientSocket(), message);
 }
 
 void Channel::SendTopic(User *user)
 {
 	if (getChannelTopic() == "\r\n")
-	{
-		std::cout << "topic" << std::endl;
 		send_msg(user->getClientSocket(), RPL_NOTOPIC(user->getNickname(), getChannelName()));
-	}
 	else
 		send_msg(user->getClientSocket(), RPL_TOPIC(user->getNickname(), getChannelName(), getChannelTopic()));
 }
@@ -103,8 +92,9 @@ void Channel::KickUser(User *user, User *sender, std::string reason, int c)
 
 // en cour ...
 
-void Channel::PartChannel(User *user, Channel *channel)
+void Channel::PartChannel(User *user)
 {
+
 	if (VerifVector(_operator_list, user) == true)
 		_operator_list.erase(std::remove(_operator_list.begin(), _operator_list.end(), user), _operator_list.end());
 	_authorized.erase(std::remove(_authorized.begin(), _authorized.end(), user), _authorized.end());
@@ -113,15 +103,8 @@ void Channel::PartChannel(User *user, Channel *channel)
 bool Channel::VerifVector(std::vector<User *> all_users, User *user)
 {
 	for (std::vector<User *>::iterator it = all_users.begin(); it != all_users.end(); ++it)
-	{
-		User *use = CpyUser(*it);
-		if (user->getNickname() == use->getNickname())
-		{
-			delete use;
+		if (user->getNickname() == (*it)->getNickname())
 			return (true);
-		}
-		delete use;
-	}
 	return (false);
 }
 

@@ -438,12 +438,12 @@ void Server::AddUserNickList(std::string set)
 
 void Server::AddUserClassList(User *user)
 {
-	_users_class_list.push_back(CpyUser(user));
+	_users_class_list.push_back(user);
 }
 
-void Server::AddUserClassList(Channel *channel)
+void Server::AddChannelClassList(Channel *channel)
 {
-	_channel_class_list.push_back(CpyChannel(channel));
+	_channel_class_list.push_back(channel);
 }
 
 /* destructor */

@@ -8,15 +8,13 @@ void Server::SendInvitedChannel(User *user, std::vector<Channel *> channel)
 
 	for (std::vector<Channel *>::iterator it = channel.begin(); it != channel.end(); ++it)
 	{
-		Channel *chan = CpyChannel(*it);
-		if (checkIsInvited(user, chan) == true)
+		if (checkIsInvited(user, (*it)) == true)
 		{
 			list.append("#");
-			list.append(chan->getChannelName());
+			list.append((*it)->getChannelName());
 			if (it + 1 != channel.end())
 				list.append(", ");
 		}
-		delete chan;
 	}
 	send_msg(user->getClientSocket(), RPL_INVITELIST(user->getNickname(), list));
 	send_msg(user->getClientSocket(), RPL_ENDOFINVITELIST(user->getNickname()));

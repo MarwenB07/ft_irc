@@ -6,13 +6,11 @@ bool Server::AlreadyInChannel(User *user, Channel *channel)
 
 	for (std::vector<User *>::iterator user_list = list.begin(); user_list != list.end(); ++user_list)
 	{
-		User *use = CpyUser(*user_list);
-		if (use->getNickname() == user->getNickname())
+		if ((*user_list)->getNickname() == user->getNickname())
 		{
-			delete use;
+			std::cout << "AlreadyInChannel = " << (*user_list)->getNickname() << " = " << user->getNickname() << std::endl;
 			return (true);
 		}
-		delete use;
 	}
 	return (false);
 }
@@ -27,7 +25,10 @@ bool Server::ChannelAlreadyExists(std::string channel, std::map<std::string, Cha
 	for (std::map<std::string, Channel *>::iterator it = channel_list.begin(); it != channel_list.end(); ++it)
 	{
 		if (it->second->getChannelName() == chan)
+		{
+			std::cout << "ChannelAlreadyExists = " << it->second->getChannelName() << " = " << chan << std::endl;
 			return (true);
+		}
 	}
 	return (false);	
 }
@@ -42,32 +43,22 @@ bool Server::checkNameOfChannel(std::string channel)
 bool Server::checkIsInvited(User *user, Channel *channel)
 {
 	std::vector<User *> list = channel->getInvitedList();
-	std::vector<User *>::iterator invited_list = list.begin();
+	std::vector<User *>::iterator invited_list;
 
-	while (invited_list != list.end())
-	{
-		User *use = CpyUser(*invited_list);
-		if (use->getClientSocket() == user->getClientSocket())
+	for (invited_list = list.begin(); invited_list != list.end(); ++invited_list)
+		if ((*invited_list)->getClientSocket() == user->getClientSocket())
 			return (true);
-		delete use;
-		++invited_list;
-	}
 	return (false);
 }
 
 bool Server::checkIsOperator(User *user, Channel *channel)
 {
 	std::vector<User *> list = channel->getChannelOperator();
-	std::vector<User *>::iterator operator_list = list.begin();
+	std::vector<User *>::iterator operator_list;
 
-	while (operator_list != list.end())
-	{
-		User *use = CpyUser(*operator_list);
-		if (use->getClientSocket() == user->getClientSocket() || user->getNickname() == channel->getChannelCreator())
+	for (operator_list = list.begin(); operator_list != list.end(); ++operator_list)
+		if ((*operator_list)->getClientSocket() == user->getClientSocket() || user->getNickname() == channel->getChannelCreator())
 			return (true);
-		delete use;
-		++operator_list;
-	}
 	return (false);
 }
 

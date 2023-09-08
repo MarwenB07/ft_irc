@@ -20,8 +20,6 @@ void Server::ExectuteIrcCmd(int socket, std::string message, std::map<std::strin
 	if (use == _users.end())
 		return ;
 
-	User *user = CpyUser(use->second);
-
 	int j = CMD.size();
 
 	std::vector<std::string>::iterator it = CMD.begin();
@@ -36,14 +34,17 @@ void Server::ExectuteIrcCmd(int socket, std::string message, std::map<std::strin
 		else if (cmd == 2)
 			Join(socket, splited_cmd, channel);
 		else if (cmd == 3)
-			Topic(user, channel, line);
+			Topic(use->second, channel, line);
 		else if (cmd == 4)
-			Kick(user, channel, line);
+			Kick(use->second, channel, line);
+		else if (cmd == 5)
+			Invite(use->second, channel, line);
+		else if (cmd == 6)
+			Part(use->second, channel, line);
 		else if (cmd == -1)
 			send_msg(socket, INVALIDE);
 		++it;
 	}
-	delete user;
 }
 
 /*

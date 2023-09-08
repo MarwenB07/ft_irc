@@ -95,7 +95,7 @@ class Channel
 
 		// Part //
 
-		void PartChannel(User *user, Channel *channel);
+		void PartChannel(User *user);
 
 		// Join //
 

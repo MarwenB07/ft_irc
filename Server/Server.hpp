@@ -143,6 +143,7 @@ class Server
 		void Join(int socket, std::vector<std::string> split, std::map<std::string, Channel *> channel);
 		void JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel *> channel);
 		void CreateChannel(User *user, std::string name);
+		void JoinZero(User *user, std::map<std::string, Channel *> channel);
 
 		// KICK //
 
@@ -151,7 +152,7 @@ class Server
 		// PART //
 
 		void Part(User *user, std::map<std::string, Channel *> channel, std::string line);
-		void PartOfChannel(User *user, std::map<std::string, Channel *> channel, std::string);
+		void PartOfChannel(User *user, std::map<std::string, Channel *> channel, std::string the_chan);
 
 		// INVITE //
 
@@ -180,7 +181,7 @@ class Server
 
 		void AddUserNickList(std::string set);
 		void AddUserClassList(User *user);
-		void AddUserClassList(Channel *channel);
+		void AddChannelClassList(Channel *channel);
 		void setClientConnected(int set);
 		void UpNbClients(void);
 
@@ -226,5 +227,8 @@ class Server
 
 		~Server();
 };
+
+User *CpyUser(User *user);
+Channel *CpyChannel(Channel *channel);
 
 #endif
