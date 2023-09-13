@@ -1,6 +1,7 @@
 #include "../Server/Server.hpp"
 
 // check avant si le channel est sur inviter
+// envoie un message a l'inviter
 
 void Server::SendInvitedChannel(User *user, std::vector<Channel *> channel)
 {
@@ -26,7 +27,6 @@ void Server::Invite(User *user, std::map<std::string, Channel *> channel, std::s
 	std::vector<std::string> split_list = s_split(line);
 	std::vector<std::string>::iterator list = split_list.begin();
 
-	std::cout << "line : " << line << std::endl;
 	if (line == "INVITE\r\n")
 		SendInvitedChannel(user, _channel_class_list);
 	else if (split_list.size() != 3)
@@ -56,8 +56,9 @@ void Server::Invite(User *user, std::map<std::string, Channel *> channel, std::s
 		return (delete use, send_msg(user->getClientSocket(), ERR_CHANOPRIVSNEEDED(user->getNickname(), word)));
 	else if (AlreadyInChannel(use, theChannel->second) == true)
 		return (delete use, send_msg(user->getClientSocket(), ERR_USERONCHANNEL(user->getNickname(), use->getNickname() ,word)));
-
+	
 	theChannel->second->AddInvitedList(use);
+	send_msg(user->getClientSocket(), INVITE(user->getNickname(), use->getNickname() , theChannel->first));
 	send_msg(use->getClientSocket(), RPL_INVITING(user->getNickname(), use->getNickname(), theChannel->second->getChannelName()));
 	delete use;
 }

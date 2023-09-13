@@ -1,0 +1,7 @@
+JOIN #test,#test2,,#test3 = prb
+JOIN MIX channel + mdp
+JOIN = send list of user in channel
+
+
+
+BONUS : BOT FEUR ou BOT qui kick en fonction des mots ban

@@ -197,15 +197,3 @@ Channel *Server::FindChannel(std::string channelname)
 	std::map<std::string, Channel *>::iterator it = _channel.find(channelname);
 	return (it->second);
 }
-
-User *CpyUser(User *user)
-{
-	User *n_user = new User(*user);
-	return (n_user);
-}
-
-Channel *CpyChannel(Channel *channel)
-{
-	Channel *n_channel = new Channel(*channel);
-	return (n_channel);
-}

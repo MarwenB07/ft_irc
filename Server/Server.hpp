@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <string>
 #include <cstring>
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -161,6 +162,16 @@ class Server
 
 		// MODE //
 
+		void Mode(User *user, std::map<std::string, Channel *> channel, std::string line);
+		void Mode_i(Channel *channel, bool set);
+		void Mode_t(Channel *channel, bool set);
+		void Mode_k(Channel *channel, bool set, std::string setPass);
+		void Mode_o(Channel *channel, std::string nick, bool set);
+		void Mode_l(Channel *channel, int limits, bool set);
+		void addMode(char mode, std::string key, Channel *channel);
+		void delMode(char mode, std::string key, Channel *channel);
+		char getModeType(char c);
+
 		// Trash //
 
 		void UserStep(int socket, int returner, User *user);
@@ -227,8 +238,5 @@ class Server
 
 		~Server();
 };
-
-User *CpyUser(User *user);
-Channel *CpyChannel(Channel *channel);
 
 #endif

@@ -1,16 +1,21 @@
 #include "../Server/Server.hpp"
 
+// probleme ne reconnais pas qu'il a quitter
+
 void Server::PartOfChannel(User *user, std::map<std::string, Channel *> channel, std::string the_chan)
 {
+	std::string reason = "";
 	std::cout << "PART used = " << _channel_class_list.size() << std::endl;
-
+	the_chan.erase(0, 1);
 	for (std::vector<Channel *>::iterator it = _channel_class_list.begin(); it != _channel_class_list.end(); ++it)
 	{
-		if (ChannelAlreadyExists(the_chan, channel, 0) == true && AlreadyInChannel(user, (*it)) == true)
+		if (ChannelAlreadyExists(the_chan, channel, 1) == true && AlreadyInChannel(user, (*it)) == true)
 		{
+			std::cout << the_chan << std::endl;
 			std::map<std::string, Channel *>::iterator chanPart = channel.find(the_chan);
+
+			send_msg(user->getClientSocket(), PART(user->getNickname(), chanPart->first, reason));
 			chanPart->second->PartChannel(user);
-			send_msg(user->getClientSocket(), PART(user->getNickname(), chanPart->first));
 			return ;
 		}
 	}

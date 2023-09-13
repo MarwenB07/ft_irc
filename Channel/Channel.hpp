@@ -37,6 +37,8 @@ class Channel
 		std::vector<User *> _operator_list;
 		bool _invitation;
 		bool _actif_password;
+		bool _topic_restric;
+		bool _client_have_limits;
 		int  _clients_limits;
 		int  _sizeofClient;
 
@@ -68,6 +70,8 @@ class Channel
 		std::vector<User *> getInvitedList(void) const;
 		bool getChannelInvitation(void) const;
 		bool getChannelActifPass(void) const;
+		bool getChannelTopicRestric(void) const;
+		bool getChannelHaveClientsLimits(void) const;
 		int  getChannelClientsLimits(void) const;
 		int  getChannelSizeofClients(void) const;
 
@@ -81,6 +85,10 @@ class Channel
 		void setChannelSizeofClients(int set);
 		void setChannelInvitation(bool set);
 		void setChannelActifPass(bool set);
+		void setChannelHaveClientsLimits(bool set);
+		void setChannelTopicRestric(bool set);
+		void DelChannelMode(std::string set);
+		void DelOperator(User *user);
 		void AddChannelAuthorized(User *user);
 		void AddChannelOperator(User *user);
 		void AddInvitedList(User *user);

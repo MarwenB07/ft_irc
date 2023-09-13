@@ -45,12 +45,14 @@ ERR_NOSUCHCHANNEL               ERR_TOOMANYCHANNELS
 
 */
 
+
+# define RPL_CHANNELMODEIS(client, channel, modestring, mode_arguments) (":localhost 324 " + client + " #" + channel + " " + modestring + " " + mode_arguments + "...\r\n") // 324
 # define RPL_NOTOPIC(client, channel) (":localhost 331 " + client + " #" + channel + " :No topic is set\r\n") // 331
 # define RPL_TOPIC(client, channel, topic) (":localhost 332 " + client + " #" + channel + " :" + topic + "\r\n") // 332
 # define RPL_INVITELIST(client, channel) (":localhost 336 " + client + " " + channel + "\r\n") // 336
 # define RPL_ENDOFINVITELIST(client) (":localhost 337 " + client + " :End of /INVITE list\r\n") // 337
 # define RPL_INVITING(client, nick, channel) (":localhost 341 " + client + " " + nick + " #" + channel + "\r\n") // 341
-# define RPL_NAMREPLY(client, symbol, channel) (":localhost 353 " + client + " " + symbol + " #" + channel + " :") // 353
+# define RPL_NAMREPLY(client, symbol, user) (":localhost 353 " + client + " " + symbol + " " + user + " :") // 353
 
 # define RPL_ENDOFNAMES(client, channel) (":localhost 366 " + client + " #" + channel + " :End of /NAMES list\r\n") // 366
 # define ERR_NOSUCHCHANNEL(client, channel) (":localhost 403 " + client + " " + channel + " :No such channel\r\n") // 403
@@ -58,6 +60,8 @@ ERR_NOSUCHCHANNEL               ERR_TOOMANYCHANNELS
 # define ERR_NOTONCHANNEL(client, channel) (":localhost 442 " + client + " " + channel + " :You're not on that channel\r\n") // 442
 # define ERR_USERONCHANNEL(client, nick, channel) (":localhost 442 " + client + " " + nick + " " + channel + " :is already on channel\r\n") // 443
 # define ERR_NEEDMOREPARAMS(client, commande) (":localhost 461 " + client + " " + commande + " :Not enough parameters\r\n") // 461
+# define ERR_INVITEONLYCHAN(client, channel) (":localhost 473 " + client + " #" + channel + " :Cannot join channel (+i)\r\n")
+# define ERR_BADCHANNELKEY(client, channel) (":localhost 475 " + client + " #" + channel + " :Cannot join channel (+k)\r\n") // 475
 # define ERR_CHANOPRIVSNEEDED(client, channel) (":localhost 482 " + client + " " + channel + " :You're not channel operator\r\n") // 482
 
 
@@ -68,7 +72,8 @@ ERR_NOSUCHCHANNEL               ERR_TOOMANYCHANNELS
 					/* Other default message */
 
 # define KICKED(sender, channel, nick, reason) (":" + sender + " KICK #" + channel + " " + nick + " :" + reason + "\r\n")
-# define PART(nick, channel) (":" + nick + " PART " + channel + "\r\n")
+# define PART(nick, channel, reason) (":" + nick + " PART " + channel + " " + nick + " :" + reason + "\r\n")
+# define INVITE(client, nick, channel) (":" + client + " INVITE " + nick + " #" + channel + "\r\n")
 
 
 

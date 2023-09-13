@@ -41,6 +41,8 @@ void Server::ExectuteIrcCmd(int socket, std::string message, std::map<std::strin
 			Invite(use->second, channel, line);
 		else if (cmd == 6)
 			Part(use->second, channel, line);
+		else if (cmd == 7)
+			Mode(use->second, channel, line);
 		else if (cmd == -1)
 			send_msg(socket, INVALIDE);
 		++it;
