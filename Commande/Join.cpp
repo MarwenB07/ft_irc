@@ -28,9 +28,9 @@ void Server::CreateChannel(User *user, std::string name)
 		send_msg(user->getClientSocket(), JOIN_CHANNEL(user->getNickname(), name));
 		_channel.insert(std::make_pair(name, new Channel(name, user)));
 		std::map<std::string, Channel *>::iterator chan = _channel.find(name);
-		_channel_class_list.push_back(chan->second);
 		chan->second->AddChannelAuthorized(user);
 		chan->second->AddChannelOperator(user);
+		_channel_class_list.push_back(chan->second);
 	}
 }
 
@@ -52,32 +52,34 @@ void Server::JoinZero(User *user, std::map<std::string, Channel *> channel)
 	return ;
 }
 
-void Server::JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel *> channel)
+void Server::JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel *> channel, std::string pass)
 {
 	std::map<std::string, Channel *>::iterator canal = channel.find(name);
 	std::map<int, User *>::iterator user = _users.find(socket);
 	if (canal->second->getChannelInvitation() == true)
-	{
 		if (checkIsInvited(user->second, canal->second) == false)
 			return (send_msg(socket, ERR_INVITEONLYCHAN(user->second->getNickname(), canal->first)));
-	}
-	if (canal->second->getChannelActifPass() == true)
+	if (canal->second->getChannelActifPass() == true && pass != canal->second->getChannelPass())
 		return (send_msg(socket, ERR_BADCHANNELKEY(user->second->getNickname(), canal->first)));
 	if (AlreadyInChannel(user->second, canal->second) == true)
 		return (send_msg(socket, ALREADY_IN_CHANNEL(name)));
+	else if (canal->second->getChannelHaveClientsLimits() == true && canal->second->getChannelClientsLimits() <= canal->second->getChannelSizeofClients())
+		return (send_msg(socket, ERR_CHANNELISFULL(user->second->getNickname(), name)));
 	else
 	{
 		canal->second->AddToChannel(user->second, nickname);
 		canal->second->AddChannelAuthorized(user->second);
 		if (checkIsInvited(user->second, canal->second) == true)
 			canal->second->DeleteInvited(user->second);
-		// send list of user 
+		return (sends_msg(socket, JOIN(user->second->getNickname(), canal->second->getChannelName()), canal->second->getChannelAuthorized(), 0));
 	}
+	return ;
 }
 
 void Server::Join(int socket, std::vector<std::string> split, std::map<std::string, Channel *> channel)
 {
 	std::string word;
+	std::string noPass = "#";
 	std::vector<std::string> channelname;
 	std::vector<std::string> pass;
 	std::vector<std::string>::iterator w = split.begin();
@@ -85,6 +87,7 @@ void Server::Join(int socket, std::vector<std::string> split, std::map<std::stri
 
 	++w;
 	word = *w;
+	std::cout << "line w = " << word << std::endl;
 	channelname = newSplit(word, ",");
 	if (split.size() == 2 && word == "0\r\n")
 		JoinZero(user->second, channel);
@@ -95,9 +98,9 @@ void Server::Join(int socket, std::vector<std::string> split, std::map<std::stri
 			word = *it;
 			word.erase(0, 1);
 			if (ChannelAlreadyExists(word, _channel, 1) == true)
-			{
-				JoinChannel(socket, user->second->getNickname(), word, channel);
-			}
+				JoinChannel(socket, user->second->getNickname(), word, channel, "");
+			else if ((*it).find("#") > 2)
+				continue;
 			else
 				CreateChannel(user->second, *it);
 		}
@@ -106,18 +109,27 @@ void Server::Join(int socket, std::vector<std::string> split, std::map<std::stri
 	{
 		++w;
 		word = *w;
+		word = correctChar(word, ',');
 		pass = newSplit(word, ",");
+		std::vector<std::string>::iterator passList = pass.begin();
+		std::cout << "pass[" << pass.size() << "]" << std::endl;
 
 		for (std::vector<std::string>::iterator it = channelname.begin(); it != channelname.end(); ++it)
 		{
-			word = *it;
-			word.erase(0, 1);
-			if (ChannelAlreadyExists(word, _channel, 1) == true)
+			if (ChannelAlreadyExists(*it, channel, 0) == true)
 			{
-				JoinChannel(socket, user->second->getNickname(), word, channel);
+				word = *it;
+				word.erase(0, 1);
+				if (checkChannelHaveActivePass(word, channel) == true && passList != pass.end())
+				{
+					std::cout << *passList << std::endl;
+					JoinChannel(socket, user->second->getNickname(), word, channel, *passList);
+					++passList;
+					std::cout << "hop" << std::endl;
+				}
+				else
+					JoinChannel(socket, user->second->getNickname(), word, channel, "");
 			}
-			else
-				CreateChannel(user->second, *it);
 		}
 		return ;
 	}

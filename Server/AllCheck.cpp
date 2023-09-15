@@ -7,10 +7,7 @@ bool Server::AlreadyInChannel(User *user, Channel *channel)
 	for (std::vector<User *>::iterator user_list = list.begin(); user_list != list.end(); ++user_list)
 	{
 		if ((*user_list)->getNickname() == user->getNickname())
-		{
-			std::cout << "AlreadyInChannel = " << (*user_list)->getNickname() << " = " << user->getNickname() << std::endl;
 			return (true);
-		}
 	}
 	return (false);
 }
@@ -25,10 +22,7 @@ bool Server::ChannelAlreadyExists(std::string channel, std::map<std::string, Cha
 	for (std::map<std::string, Channel *>::iterator it = channel_list.begin(); it != channel_list.end(); ++it)
 	{
 		if (it->second->getChannelName() == chan)
-		{
-			std::cout << "ChannelAlreadyExists = " << it->second->getChannelName() << " = " << chan << std::endl;
 			return (true);
-		}
 	}
 	return (false);	
 }
@@ -56,9 +50,13 @@ bool Server::checkIsOperator(User *user, Channel *channel)
 	std::vector<User *> list = channel->getChannelOperator();
 	std::vector<User *>::iterator operator_list;
 
+	std::cout << list.size() << std::endl;
 	for (operator_list = list.begin(); operator_list != list.end(); ++operator_list)
+	{
 		if ((*operator_list)->getClientSocket() == user->getClientSocket() || user->getNickname() == channel->getChannelCreator())
 			return (true);
+	}
+	std::cout << "false" << std::endl;
 	return (false);
 }
 
@@ -77,4 +75,11 @@ bool Server::checkIsCreator(User *user, Channel *channel)
 	if (user->getNickname() == channel->getChannelCreator())
 		return (true);
 	return (false);
+}
+
+bool Server::checkChannelHaveActivePass(std::string name, std::map<std::string, Channel *> channel_list)
+{
+	std::cout << name << std::endl;
+	std::map<std::string, Channel *>::iterator channel = channel_list.find(name);
+	return (channel->second->getChannelActifPass());
 }

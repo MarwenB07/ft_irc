@@ -30,21 +30,21 @@ void Server::Kick(User *user, std::map<std::string, Channel *> channel, std::str
 	User *use = FindUser(word);
 
 	if (AlreadyInChannel(use, ActualChannel->second) == false)
-		return (delete use, send_msg(user->getClientSocket(), ERR_USERNOTINCHANNEL(user->getNickname(), word, ActualChannel->first)));
+		return (send_msg(user->getClientSocket(), ERR_USERNOTINCHANNEL(user->getNickname(), word, ActualChannel->first)));
 	else if (checkIsCreator(use, ActualChannel->second) == true)
-		return (delete use, send_msg(user->getClientSocket(), ERR_CHANOPRIVSNEEDED(user->getNickname(), word)));
+		return (send_msg(user->getClientSocket(), ERR_CHANOPRIVSNEEDED(user->getNickname(), word)));
 	if (split_list.size() == 3)
-		return (delete use, ActualChannel->second->KickUser(use, user, "", 0));
+		return (ActualChannel->second->KickUser(use, user, "", 0));
 	
 	++list;
 	word = *list;
 
 	if (split_list.size() == 4 && word == ":")
-		return (delete use);
+		return ;
 	else if (split_list.size() >= 4 && word.find(":") < 2)
 	{
 		word = takeMessage(line);
 		ActualChannel->second->KickUser(use, user, "", 1);
 	}
-	return (delete use);
+	return ;
 }

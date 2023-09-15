@@ -22,6 +22,8 @@ void Server::ExectuteIrcCmd(int socket, std::string message, std::map<std::strin
 
 	int j = CMD.size();
 
+	std::cout << j << std::endl;
+
 	std::vector<std::string>::iterator it = CMD.begin();
 
 	for (int i = 0; i < j - 1; i++)
@@ -43,32 +45,12 @@ void Server::ExectuteIrcCmd(int socket, std::string message, std::map<std::strin
 			Part(use->second, channel, line);
 		else if (cmd == 7)
 			Mode(use->second, channel, line);
-		else if (cmd == -1)
+		else if (cmd == 8)
+			continue ;
+		else if (cmd == 9)
+			Quit(use->second, channel, line);
+		else if (cmd == -1)		
 			send_msg(socket, INVALIDE);
 		++it;
 	}
 }
-
-/*
-
-int cmd;
-	std::string line;
-	std::vector<std::string> splited_cmd;
-	std::vector<std::string> CMD = newSplit(message, "\r\n");
-
-	std::cout << "en vie\n";
-
-	for (std::vector<std::string>::iterator it = CMD.begin(); it != CMD.end(); ++it)
-	{
-		line = *it;
-		splited_cmd = s_split(line);
-		cmd = FindCmd(splited_cmd);
-		if (cmd == 1)
-			PrivateMsg(_users, splited_cmd, socket, channel);
-		else if (cmd == 2)
-			Join(socket, splited_cmd, channel);
-		else if (cmd == -1)
-			send_msg(socket, INVALIDE);
-	}
-}
-*/

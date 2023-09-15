@@ -1,7 +1,7 @@
 JOIN #test,#test2,,#test3 = prb
-JOIN MIX channel + mdp
 JOIN = send list of user in channel
+PING Askip 2 sec
+faire pour nc que ça marche avec les autre cmd
 
 
-
-BONUS : BOT FEUR ou BOT qui kick en fonction des mots ban
+BONUS : BOT

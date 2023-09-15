@@ -12,8 +12,12 @@ Server::Server(int port, std::string password) : _port(port), _password(password
 	_nbClient = 0;
 	_serverName = "ft_irc.42";
 	_initialTime = time(nullptr);
+	_message = "";
 	_version = "0.1";
 	_max = NB_CLIENTS;
+	_Pass = "";
+	_oldest = 0;
+	_old = "";
 }
 
 /* function */
@@ -22,6 +26,7 @@ Server::Server(int port, std::string password) : _port(port), _password(password
 
 int Server::tryPassword(std::vector<std::string> str, int socket)
 {
+	(void)socket;
 	if (str.size() != 2)
 		return (-1);
 
@@ -30,9 +35,27 @@ int Server::tryPassword(std::vector<std::string> str, int socket)
 	if (*it != "PASS")
 		return (-1);
 	++it;
-	if (*it != getPassword())
-		return (send_msg(socket, ERR_PASS), 2);
 	return (1);
+}
+
+std::string Server::givePass(std::vector<std::string> str)
+{
+	std::vector<std::string>::iterator it = str.begin();
+	++it;
+	return (*it);
+}
+
+void Server::eraseUserInMap(int socket, std::map<int, User *> userList)
+{
+	std::map<int, User *>::iterator it = userList.find(socket);
+
+	if (it != userList.end()) 
+	{
+        delete it->second;
+        userList.erase(it);
+    }
+	else
+    	return ;
 }
 
 // check if my client send a good nickname //
@@ -190,7 +213,7 @@ int Server::InitServer( void )
         return (-1);
 	}
 
-	std::cout << START << std::endl; 
+	std::cout << START << std::endl;
 
 	return (0);
 }
@@ -248,12 +271,16 @@ int Server::StartServer( void )
             if (cfd > maxSocket)
                 maxSocket = cfd;
 
+			std::cout << "newPaire" << std::endl;
+
 			_users.insert(std::make_pair(cfd, new User(cfd, clientIP)));
 
             std::string welcomeMessage = WELCOME;
             send(cfd, welcomeMessage.c_str(), welcomeMessage.length(), 0);
             _clients.push_back(cfd);
         }
+
+		std::cout << "oldest return 0" << std::endl;
 		
         for (std::vector<int>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 		{
@@ -263,14 +290,28 @@ int Server::StartServer( void )
 			{
                 _bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
 				message = buffer;
+				if (message.find("\n") == std::string::npos)
+				{
+					_old.append(message);
+					_oldest = 1;
+					std::cout << _oldest << std::endl;
+				}
+				else if (_oldest == 1)
+				{
+					Ctrl_D_Join(buffer, _old, message);
+					std::cout << "buffer " << buffer << std::endl;
+					_oldest = 0;
+					_old = "";
+					message = buffer;
+				}
 				_message = message;
 				_splited = s_split(message);
-				//std::cout << visiblechar(buffer);
-				if (itUser->second->getPasswordStatus() == false)
-					returner = tryPassword(_splited, clientSocket);
-				else if (itUser->second->getNickStatus() == false)
+				std::cout << visiblechar(buffer) << std::endl;
+				std::cout << _oldest << std::endl;
+
+				if (itUser->second->getNickStatus() == false)
 					returner = tryNick(_splited, _users, clientSocket);
-				else
+				else if (itUser->second->getNickStatus() == true && itUser->second->getUserStatus() == false)
 					returner = tryUser(_splited, clientSocket);
                 if (_bytesRead <= 0) 
 				{
@@ -279,7 +320,7 @@ int Server::StartServer( void )
                     close(clientSocket);
 					setClientConnected(1);
                     FD_CLR(clientSocket, &readfds);
-					//_users.erase(std::remove(_users.begin(), _users.end(), clientSocket), _users.end());
+		
 					// *function efface l'user des channel* //
                     _clients.erase(std::remove(_clients.begin(), _clients.end(), clientSocket), _clients.end());
 					break;
@@ -290,18 +331,35 @@ int Server::StartServer( void )
 					{
 						close(clientSocket);
 						// supp le client user //
+						eraseUserInMap(clientSocket, _users);
 						continue;
 					}
-					else if (returner > 0 && itUser->second->getPasswordStatus() == false)
-						PassStep(clientSocket, returner, itUser->second);
-					else if (returner > 0 && itUser->second->getPasswordStatus() == true && itUser->second->getNickStatus() == false)
+					else if (tryPassword(_splited, clientSocket) == 1)
+						_Pass = givePass(_splited);
+					else if (returner > 0 && itUser->second->getNickStatus() == false)
 						NickStep(clientSocket, message, returner, itUser->second);
-					else if (returner > 0 && itUser->second->getUserStatus() == false && itUser->second->getPasswordStatus() == true && itUser->second->getNickStatus() == true)
-						UserStep(clientSocket, returner, itUser->second);
+					else if (returner > 0 && itUser->second->getUserStatus() == false && itUser->second->getNickStatus() == true)
+					{
+						if (UserStep(clientSocket, returner, itUser->second) == -1)
+						{
+							close(itUser->first);
+							_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
+							eraseUserInMap(clientSocket, _users);
+							FD_CLR(clientSocket, &readfds);
+							continue;
+							// test
+						}
+					}
 					else if (message == "HELPER\r\n" || message == "HELPER\n")
+					{
 						send_msg(clientSocket, HELP_MESSAGE);
-					else
-						send_msg(clientSocket, ERR_USELESS);
+						std::cout << "getPassStatus = " << itUser->second->getPasswordStatus() << std::endl;
+						std::cout << "getNickStatus = " << itUser->second->getNickStatus() << std::endl;
+						std::cout << "getNickStatus = " << itUser->second->getUserStatus() << std::endl;
+						std::cout << "nick = " << itUser->second->getNickname() << std::endl;
+					}
+					//else
+					//	send_msg(clientSocket, ERR_USELESS);
 					returner = 0;
 				}
 				else
@@ -310,6 +368,12 @@ int Server::StartServer( void )
 					if (_bytesRead > 512)
 					{
 						send_msg(clientSocket, ERR_LENGTH);
+						continue;
+					}
+					else if (message.find("CAP LS") != std::string::npos)
+					{
+						std::cout << "cap" << std::endl;
+						cleanBuffer(buffer, 513);
 						continue;
 					}
 					else if (message == "\r\n" || message == "\n")
@@ -356,6 +420,13 @@ std::string Server::getPassword(void) const
 	return (_password);
 }
 
+// get PASS //
+
+std::string Server::getPass(void) const
+{
+	return (_Pass);
+}
+
 std::vector<Channel *> Server::getChannelClassList(void) const
 {
 	return (_channel_class_list);
@@ -399,6 +470,11 @@ int Server::getClientSocket(void) const
 	return (_clientSocket);
 }
 
+int Server::getOldest(void) const
+{
+	return (_oldest);
+}
+
 std::vector<std::string> Server::getUserNickList(void) const
 {
 	return (_users_nick_list);
@@ -407,6 +483,11 @@ std::vector<std::string> Server::getUserNickList(void) const
 std::vector<User *> Server::getUserClassList(void) const
 {
 	return (_users_class_list);
+}
+
+std::string Server::getOld(void) const
+{
+	return (_old);
 }
 
 // get my channel  //

@@ -18,6 +18,12 @@ int Server::FindCmd(std::vector<std::string> message)
 		return (5);
 	else if (*it == "PART")
 		return (6);
+	else if (*it == "MODE")
+		return (7);
+	else if (*it == "PING")
+		return (8);
+	else if (*it == "QUIT")
+		return (9);
 	return (-1);
 }
 

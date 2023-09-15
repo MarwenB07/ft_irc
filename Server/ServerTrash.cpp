@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-void Server::UserStep(int socket, int returner, User *user)
+int Server::UserStep(int socket, int returner, User *user)
 {
 	if (returner == 1)
 	{
@@ -9,12 +9,16 @@ void Server::UserStep(int socket, int returner, User *user)
 		user->MakeTrue("USER");
 		user->CompleteUser(user->getNickname(), *it);
 		send_msg(socket, GoodUser);
-		AddUserNickList(user->getNickname());
+		if (getPass() != getPassword())
+			return (-1);
 		UpNbClients();
 		setClientConnected(1);
 		WelcomeToIrc(socket, user);
 		AddUserClassList(user);
+		user->MakeTrue("PASS");
+		return (1);
 	}
+	return (0);
 }
 
 void Server::PassStep(int socket, int returner, User *user)
@@ -32,6 +36,7 @@ void Server::NickStep(int socket, std::string message, int returner, User *user)
 	{
 		user->MakeTrue("NICK");
 		user->CompleteUser(message.c_str() + 5, user->getUsername());
+		AddUserNickList(user->getNickname());
 		send_msg(socket, GoodNick);
 	}
 }

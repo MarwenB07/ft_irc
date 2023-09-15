@@ -81,7 +81,6 @@ void Channel::SendTopic(User *user)
 
 void Channel:: KickUser(User *user, User *sender, std::string reason, int c)
 {
-	std::cout << "kickuser used" << std::endl;
 	if (VerifVector(_operator_list, user) == true)
 		_operator_list.erase(std::remove(_operator_list.begin(), _operator_list.end(), user), _operator_list.end());
 	_authorized.erase(std::remove(_authorized.begin(), _authorized.end(), user), _authorized.end());
@@ -93,7 +92,6 @@ void Channel:: KickUser(User *user, User *sender, std::string reason, int c)
 
 void Channel::PartChannel(User *user)
 {
-	std::cout << "erase" << std::endl;
 	if (VerifVector(_operator_list, user) == true)
 		_operator_list.erase(std::remove(_operator_list.begin(), _operator_list.end(), user), _operator_list.end());
 	_authorized.erase(std::remove(_authorized.begin(), _authorized.end(), user), _authorized.end());
@@ -101,7 +99,6 @@ void Channel::PartChannel(User *user)
 
 void Channel::DelOperator(User *user)
 {
-	std::cout << "erase" << std::endl;
 	if (VerifVector(_operator_list, user) == true)
 		_operator_list.erase(std::remove(_operator_list.begin(), _operator_list.end(), user), _operator_list.end());
 }

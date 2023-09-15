@@ -86,12 +86,15 @@ class Server
 		int _clientSocket;
 		int _actually_connected;
 		int _max;
+		int _oldest;
 
 		time_t _initialTime;
 
+		std::string _old;
 		std::string _host;
 		std::string _version;
 		std::string _password;
+		std::string _Pass;
 		std::string _message;
 		std::string _serverName;
 		
@@ -105,6 +108,7 @@ class Server
 
 		// private function //
 
+		std::string givePass(std::vector<std::string> str);
 		int tryPassword(std::vector<std::string> str, int socket);
 		int tryNick(std::vector<std::string> str, std::map<int, User *> user, int socket);
 		int tryUser(std::vector<std::string> str, int socket);
@@ -115,11 +119,14 @@ class Server
 
 		void cleanBuffer(char *buffer, int len);
 		std::string makeIdenticalChat(char *buffer, std::string name);
+		void eraseUserInMap(int socket, std::map<int, User *> userList);
 
 		// ServerHelp //
 
 		std::string s_itoa(int number);
 		void WelcomeToIrc(int socket, User *user);
+		std::string correctChar(std::string line, char c);
+		void Ctrl_D_Join(char *buffer, std::string oldMess, std::string newMess);
 
 		// Commande //
 
@@ -142,7 +149,7 @@ class Server
 		// JOIN //
 
 		void Join(int socket, std::vector<std::string> split, std::map<std::string, Channel *> channel);
-		void JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel *> channel);
+		void JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel *> channel, std::string pass);
 		void CreateChannel(User *user, std::string name);
 		void JoinZero(User *user, std::map<std::string, Channel *> channel);
 
@@ -160,6 +167,10 @@ class Server
 		void SendInvitedChannel(User *user, std::vector<Channel *> channel);
 		void Invite(User *user, std::map<std::string, Channel *> channel, std::string line);
 
+		// QUIT //
+
+		void Quit(User *user, std::map<std::string, Channel *> channel_list, std::string line);
+
 		// MODE //
 
 		void Mode(User *user, std::map<std::string, Channel *> channel, std::string line);
@@ -174,7 +185,7 @@ class Server
 
 		// Trash //
 
-		void UserStep(int socket, int returner, User *user);
+		int UserStep(int socket, int returner, User *user);
 		void NickStep(int socket, std::string message, int returner, User *user);
 		void PassStep(int socket, int returner, User *user);
 
@@ -187,6 +198,7 @@ class Server
 		bool checkIsCreator(User *user, Channel *channel);
 		bool checkUserExist(std::string nickname);
 		bool ChannelAlreadyExists(std::string channel, std::map<std::string, Channel *> channel_list, int c);
+		bool checkChannelHaveActivePass(std::string name, std::map<std::string, Channel *> channel_list);
 
 		// Add //
 
@@ -219,6 +231,9 @@ class Server
 		int getClientSocket(void) const;
 		int getSocket(void) const;
 		int getMaxClient(void) const;
+		int getOldest(void) const;
+		std::string getPass(void) const;
+		std::string getOld(void) const;
 		std::string getPassword(void) const;
 		std::string getMessage(void) const;
 		std::string getServerName(void) const;

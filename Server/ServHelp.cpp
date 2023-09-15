@@ -73,6 +73,25 @@ std::vector<std::string> Server::newSplit(std::string s, std::string c)
     return (splitted);
 }
 
+// join if ^D //
+
+void Server::Ctrl_D_Join(char *buffer, std::string oldMess, std::string newMess)
+{
+	int i = 0;
+	std::cout << "old = " << oldMess << " / new = " << newMess << std::endl;
+	cleanBuffer(buffer, 513);
+	for (; oldMess.c_str()[i];)
+	{
+		buffer[i] = oldMess.c_str()[i];
+		i++;
+	}
+	for (int j = 0; newMess.c_str()[j]; j++)
+	{
+		buffer[i] = newMess.c_str()[j];
+		i++;
+	}
+}
+
 // give all information //
 
 //void Server::WelcomeToIrc(int socket)
@@ -193,7 +212,19 @@ User *Server::FindUser(std::string nickname)
 
 Channel *Server::FindChannel(std::string channelname)
 {
-	std::cout << channelname << std::endl;
 	std::map<std::string, Channel *>::iterator it = _channel.find(channelname);
 	return (it->second);
+}
+
+std::string Server::correctChar(std::string line, char c)
+{
+	int recur = 0;
+	std::string newWord = "";
+
+	for (int i = 0; line.c_str()[i]; i++)
+	{
+		if (line.c_str()[i] == c)
+			recur++;
+	}
+	return (newWord);
 }

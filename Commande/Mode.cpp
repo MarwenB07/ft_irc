@@ -32,6 +32,7 @@ void Server::Mode_t(Channel *channel, bool set)
 
 void Server::Mode_k(Channel *channel, bool set, std::string setPass)
 {
+	std::cout << set << " = " << setPass << std::endl;
 	if (set == false)
 		channel->setChannelActifPass(set);
 	else if (set == true && setPass.length() > 0)
@@ -120,13 +121,19 @@ void Server::delMode(char mode, std::string key, Channel *channel)
 
 void Server::Mode(User *user, std::map<std::string, Channel *> channel, std::string line)
 {
+	std::cout << "start" << std::endl;
 	int status = 0;
 	int i = 0;
 	char c;
 	std::string unknow = "";
 	std::string word;
+	std::string add = "+";
+	std::string del = "-";
+	std::string mod = "";
 	std::vector<std::string> split_list = s_split(line);
 	std::vector<std::string>::iterator list = split_list.begin();
+
+	std::cout << line << std::endl;
 
 	if (line == "MODE")
 		return ; // caca
@@ -134,18 +141,24 @@ void Server::Mode(User *user, std::map<std::string, Channel *> channel, std::str
 	++list;
 	word = *list;
 
-	if (split_list.size() < 2)
+	if (split_list.size() <= 2)
 		return ;
 
 	if (ChannelAlreadyExists(word, channel, 0) == false)
+	{
+		std::cout << "here" << std::endl;
 		return ;
-	
+	}
+	std::cout << word << std::endl;
 	Channel *chan = FindChannel(word.c_str() + 1);
+	std::cout << "test " << split_list.size() << std::endl;
 
 	if (split_list.size() < 3)
 		return ;
 	else if (checkIsOperator(user, chan) == false)
 		return (send_msg(user->getClientSocket(), ERR_CHANOPRIVSNEEDED(user->getNickname(), word)));
+
+	std::cout << "safe" << std::endl;
 
 	++list;
 	word = *list;
@@ -170,15 +183,17 @@ void Server::Mode(User *user, std::map<std::string, Channel *> channel, std::str
 		c = getModeType(word.c_str()[i]);
 		if (c == 'u')
 		{
-			send_msg(user->getClientSocket(), RPL_CHANNELMODEIS(user->getNickname(), chan->getChannelName(), word.c_str()[i], unknow));
 			i++;
+			send_msg(user->getClientSocket(), ERR_UNKNOWNMODE(user->getNickname(), c));
 			continue;
 		}
 		else
 		{
 			if (status == 2)
 			{
-				
+				mod = c;
+				del = "-";
+				del.append(mod);
 				if (c == 'i')
 					delMode(c, unknow, chan);
 				else if (c == 't')
@@ -189,46 +204,46 @@ void Server::Mode(User *user, std::map<std::string, Channel *> channel, std::str
 					delMode(c, unknow, chan);
 				else if (c == 'o')
 				{
-					delMode(c, *list, chan);
-					send_msg(user->getClientSocket(), RPL_CHANNELMODEIS(user->getNickname(), chan->getChannelName(), word.c_str()[i], unknow));
 					if (list + 1 != split_list.end())
 						++list;
+					delMode(c, *list, chan);
 				}
-				if (c != 'o')
-					send_msg(user->getClientSocket(), RPL_CHANNELMODEIS(user->getNickname(), chan->getChannelName(), word.c_str()[i], *list));
+				send_msg(user->getClientSocket(), MODE(user->getNickname(), chan->getChannelName(), del));
 				
 			}
 			else if (status == 1)
 			{
+				mod = c;
+				add = "+";
+				add.append(mod);
 				if (c == 'i')
 					addMode(c, unknow, chan);
 				else if (c == 't')
 					addMode(c, unknow, chan);
 				else if (c == 'k')
 				{
-					addMode(c, *list, chan);
-					send_msg(user->getClientSocket(), RPL_CHANNELMODEIS(user->getNickname(), chan->getChannelName(), word.c_str()[i], unknow));
 					if (list + 1 != split_list.end())
 						++list;
+					addMode(c, *list, chan);
 				}
 				else if (c == 'l')
 				{
-					addMode(c, *list, chan);
-					send_msg(user->getClientSocket(), RPL_CHANNELMODEIS(user->getNickname(), chan->getChannelName(), word.c_str()[i], unknow));
 					if (list + 1 != split_list.end())
 						++list;
+					addMode(c, *list, chan);
 				}
 				else if (c == 'o')
 				{
-					addMode(c, *list, chan);
-					send_msg(user->getClientSocket(), RPL_CHANNELMODEIS(user->getNickname(), chan->getChannelName(), word.c_str()[i], unknow));
 					if (list + 1 != split_list.end())
 						++list;
+					addMode(c, *list, chan);
 				}
-				if (c != 'o' && c != 'l' && c != 'l')
-					send_msg(user->getClientSocket(), RPL_CHANNELMODEIS(user->getNickname(), chan->getChannelName(), word.c_str()[i], *list));
+				send_msg(user->getClientSocket(), MODE(user->getNickname(), chan->getChannelName(), add));
 			}
 			i++;
 		}
 	}
+	std::cout << "MODE k = " << chan->getChannelActifPass() << std::endl;
+	std::cout << "MODE t = " << chan->getChannelTopicRestric() << std::endl; 
+	std::cout << "MODE i = " << chan->getChannelInvitation() << std::endl; 
 }

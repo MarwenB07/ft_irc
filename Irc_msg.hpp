@@ -27,7 +27,7 @@ l_o_t_m = line of the motd
 # define RPL_LUSERCLIENT(client, entier) (":localhost 251 " + client + " :There are " + entier + " users and 0 invisible on 1 servers\r\n") // 251
 # define RPL_LUSEROP(client, entier) (":localhost 252 " + client + " " + entier + " :operator(s) online\r\n") // 252
 # define RPL_LUSERCHANNELS(client, entier) (":localhost 254 " + client + " :channels formed\r\n") // 254
-# define RPL_LUSERME(client, entier) (":localhost 255 " + client + " :I have " + entier + "clients and 1 servers\r\n") // 255
+# define RPL_LUSERME(client, entier) (":localhost 255 " + client + " :I have " + entier + " clients and 1 servers\r\n") // 255
 # define RPL_LOCALUSERS(client, u, m) (":localhost 265 " + client + " " + u + " " + m + ":Current local users " + u + " max " + m + "\r\n") // 265
 # define RPL_GLOBALUSERS(client, u, m) (":localhost 266 " + client + " " + u + " " + m + ":Current global users " + u + " max " + m + "\r\n") // 266
 
@@ -60,12 +60,12 @@ ERR_NOSUCHCHANNEL               ERR_TOOMANYCHANNELS
 # define ERR_NOTONCHANNEL(client, channel) (":localhost 442 " + client + " " + channel + " :You're not on that channel\r\n") // 442
 # define ERR_USERONCHANNEL(client, nick, channel) (":localhost 442 " + client + " " + nick + " " + channel + " :is already on channel\r\n") // 443
 # define ERR_NEEDMOREPARAMS(client, commande) (":localhost 461 " + client + " " + commande + " :Not enough parameters\r\n") // 461
-# define ERR_INVITEONLYCHAN(client, channel) (":localhost 473 " + client + " #" + channel + " :Cannot join channel (+i)\r\n")
+# define ERR_CHANNELISFULL(client, channel) (":localhost 471 " + client + " " + channel + " :Cannot join channel (+l)\r\n") // 471
+# define ERR_UNKNOWNMODE(client, modechar) (":localhost 472 " + client + " " + modechar + " :is unknown mode char to me\r\n") // 472
+# define ERR_INVITEONLYCHAN(client, channel) (":localhost 473 " + client + " #" + channel + " :Cannot join channel (+i)\r\n") // 473
 # define ERR_BADCHANNELKEY(client, channel) (":localhost 475 " + client + " #" + channel + " :Cannot join channel (+k)\r\n") // 475
 # define ERR_CHANOPRIVSNEEDED(client, channel) (":localhost 482 " + client + " " + channel + " :You're not channel operator\r\n") // 482
 
-
-  
 					/* Error Macro in Irc */
 
 // 448
@@ -74,6 +74,10 @@ ERR_NOSUCHCHANNEL               ERR_TOOMANYCHANNELS
 # define KICKED(sender, channel, nick, reason) (":" + sender + " KICK #" + channel + " " + nick + " :" + reason + "\r\n")
 # define PART(nick, channel, reason) (":" + nick + " PART " + channel + " " + nick + " :" + reason + "\r\n")
 # define INVITE(client, nick, channel) (":" + client + " INVITE " + nick + " #" + channel + "\r\n")
+# define MODE(client, channel, mode) (":" + client + " MODE #" + channel + " " + mode + "\r\n")
+# define JOIN(client, channel) (":" + client + " JOIN #" + channel + "\r\n")
+# define PONG(server, token) (server + token) // a voir + tard
+# define QUIT(client, reason) (":" + client + " QUIT :" + reason + "\r\n") // a voir + tard
 
 
 

@@ -11,7 +11,6 @@ void Server::PartOfChannel(User *user, std::map<std::string, Channel *> channel,
 	{
 		if (ChannelAlreadyExists(the_chan, channel, 1) == true && AlreadyInChannel(user, (*it)) == true)
 		{
-			std::cout << the_chan << std::endl;
 			std::map<std::string, Channel *>::iterator chanPart = channel.find(the_chan);
 
 			send_msg(user->getClientSocket(), PART(user->getNickname(), chanPart->first, reason));
