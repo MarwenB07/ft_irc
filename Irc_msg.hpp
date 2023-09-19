@@ -18,6 +18,7 @@ l_o_t_m = line of the motd
 
 // Join the server //
 
+
 # define RPL_WELCOME(client, servername, user, host) (":localhost 001 " + client + " :Welcome to the " + servername + " Network, " + client + "!" + user + "@" + host + "\r\n") // 001
 # define RPL_YOURHOST(client, servername, version) (":localhost 002 " + client + " :Your host is " + servername + ", running version " + version + "\r\n") // 002
 # define RPL_CREATED(client, datetime) (":localhost 003 " + client + " :This server was created " + datetime + "\r\n") // 003
@@ -34,6 +35,7 @@ l_o_t_m = line of the motd
 # define RPL_MOTD(client, l_o_t_m) ( ":localhost 372 " + client + " :" + l_o_t_m + "\r\n") // 372
 # define RPL_ENDOFMOTD(client) ( ":localhost 376 " + client + " :End of /MOTD command.\r\n") // 376
 
+
 // JOIN a channel //
 
 /*
@@ -46,20 +48,27 @@ ERR_NOSUCHCHANNEL               ERR_TOOMANYCHANNELS
 */
 
 
-# define RPL_CHANNELMODEIS(client, channel, modestring, mode_arguments) (":localhost 324 " + client + " #" + channel + " " + modestring + " " + mode_arguments + "...\r\n") // 324
+# define RPL_CHANNELMODEIS(client, channel, modestring, mode_arguments) (":localhost 324 " + client + " #" + channel + " " + modestring + mode_arguments + "...\r\n") // 324
+# define RPL_CREATIONTIME(client, channel, creationtime) (":localhost 329 " + client + " #" + channel + " " + creationtime + "\r\n") // 329
 # define RPL_NOTOPIC(client, channel) (":localhost 331 " + client + " #" + channel + " :No topic is set\r\n") // 331
 # define RPL_TOPIC(client, channel, topic) (":localhost 332 " + client + " #" + channel + " :" + topic + "\r\n") // 332
+# define RPL_TOPICWHOTIME(client, channel, nick, setat) (":localhost 333 " + client + " #" + channel + " " + nick + " " + setat + "\r\n") // 333
 # define RPL_INVITELIST(client, channel) (":localhost 336 " + client + " " + channel + "\r\n") // 336
 # define RPL_ENDOFINVITELIST(client) (":localhost 337 " + client + " :End of /INVITE list\r\n") // 337
 # define RPL_INVITING(client, nick, channel) (":localhost 341 " + client + " " + nick + " #" + channel + "\r\n") // 341
-# define RPL_NAMREPLY(client, symbol, user) (":localhost 353 " + client + " " + symbol + " " + user + " :") // 353
+# define RPL_NAMREPLY(client, symbol, channel, user) (":localhost 353 " + client + " " + symbol + " #" + channel + " :" + user + " \r\n") // 353
 
 # define RPL_ENDOFNAMES(client, channel) (":localhost 366 " + client + " #" + channel + " :End of /NAMES list\r\n") // 366
 # define ERR_NOSUCHCHANNEL(client, channel) (":localhost 403 " + client + " " + channel + " :No such channel\r\n") // 403
+# define ERR_NONICKNAMEGIVEN(client) (":localhost 431 " + client + " :No nickname given\r\n") // 431
+# define ERR_ERRONEUSNICKNAME(client, nick) (":localhost 432 " + client + " " + nick + " :Erroneus nickname\r\n") // 432
+# define ERR_NICKNAMEINUSE(client, nick) (":localhost 433 " + client + " " + nick + " :Nickname is already in use\r\n") // 433
 # define ERR_USERNOTINCHANNEL(client, nick, channel) (":localhost 441 " + client + " " + nick + " #" + channel + " :They aren't on that channel\r\n") // 441
 # define ERR_NOTONCHANNEL(client, channel) (":localhost 442 " + client + " " + channel + " :You're not on that channel\r\n") // 442
 # define ERR_USERONCHANNEL(client, nick, channel) (":localhost 442 " + client + " " + nick + " " + channel + " :is already on channel\r\n") // 443
 # define ERR_NEEDMOREPARAMS(client, commande) (":localhost 461 " + client + " " + commande + " :Not enough parameters\r\n") // 461
+# define ERR_ALREADYREGISTERED(client) (":localhost 462 " + client + " :You may not reregister\r\n") // 462
+# define ERR_PASSWDMISMATCH(client) (":localhost 464 " + client + " :Password incorrect\r\n") // 464
 # define ERR_CHANNELISFULL(client, channel) (":localhost 471 " + client + " " + channel + " :Cannot join channel (+l)\r\n") // 471
 # define ERR_UNKNOWNMODE(client, modechar) (":localhost 472 " + client + " " + modechar + " :is unknown mode char to me\r\n") // 472
 # define ERR_INVITEONLYCHAN(client, channel) (":localhost 473 " + client + " #" + channel + " :Cannot join channel (+i)\r\n") // 473

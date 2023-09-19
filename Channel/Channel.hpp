@@ -31,10 +31,13 @@ class Channel
 		std::string _password;
 		std::string _topic;
 		std::string _channel_mode_list;
-		std::map<std::string,std::string> _user_mode;
+		std::string _topic_seter;
+		std::map<std::string, std::string> _user_mode;
 		std::vector<User *> _invited;
 		std::vector<User *> _authorized;
 		std::vector<User *> _operator_list;
+		time_t _creationTime;
+		time_t _topicCreationTime;
 		bool _invitation;
 		bool _actif_password;
 		bool _topic_restric;
@@ -64,6 +67,7 @@ class Channel
 		std::string getChannelTopic(void) const;
 		std::string getChannelMode(void) const;
 		std::string getChannelCreator(void) const;
+		std::string getTopicSeter(void) const;
 		std::map<std::string,std::string> getUserModeList(void) const;
 		std::vector<User *> getChannelAuthorized(void) const;
 		std::vector<User *> getChannelOperator(void) const;
@@ -74,9 +78,14 @@ class Channel
 		bool getChannelHaveClientsLimits(void) const;
 		int  getChannelClientsLimits(void) const;
 		int  getChannelSizeofClients(void) const;
+		time_t getCreationTime(void) const;
+		time_t getTopicCreationTime(void) const;
 
 		// seter //
 
+		
+		void setTopicCreationTime(void);
+		void setTopicSeter(std::string set);
 		void setChannelName(std::string set);
 		void setChannelMode(std::string set);
 		void setChannelPass(std::string set);
@@ -108,6 +117,12 @@ class Channel
 		// Join //
 
 		void DeleteInvited(User *user);
+
+		// other //
+
+		void EraseChannelUser(User *user);
+		void DeleteChannel(Channel *channel);
+		void ChannelDeleteAll(void);
 
 		~Channel();
 };

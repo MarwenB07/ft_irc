@@ -21,6 +21,7 @@ bool Server::ChannelAlreadyExists(std::string channel, std::map<std::string, Cha
 		chan.erase(0, 1);
 	for (std::map<std::string, Channel *>::iterator it = channel_list.begin(); it != channel_list.end(); ++it)
 	{
+		it->second->getChannelName();
 		if (it->second->getChannelName() == chan)
 			return (true);
 	}
@@ -50,13 +51,11 @@ bool Server::checkIsOperator(User *user, Channel *channel)
 	std::vector<User *> list = channel->getChannelOperator();
 	std::vector<User *>::iterator operator_list;
 
-	std::cout << list.size() << std::endl;
 	for (operator_list = list.begin(); operator_list != list.end(); ++operator_list)
 	{
 		if ((*operator_list)->getClientSocket() == user->getClientSocket() || user->getNickname() == channel->getChannelCreator())
 			return (true);
 	}
-	std::cout << "false" << std::endl;
 	return (false);
 }
 
@@ -79,7 +78,6 @@ bool Server::checkIsCreator(User *user, Channel *channel)
 
 bool Server::checkChannelHaveActivePass(std::string name, std::map<std::string, Channel *> channel_list)
 {
-	std::cout << name << std::endl;
 	std::map<std::string, Channel *>::iterator channel = channel_list.find(name);
 	return (channel->second->getChannelActifPass());
 }

@@ -4,7 +4,7 @@ NAME = ircserv
 
 # ---- COMPLILATION ---- #
 
-CPP = @c++
+CPP = c++
 
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 

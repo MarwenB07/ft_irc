@@ -111,7 +111,7 @@ class Server
 		std::string givePass(std::vector<std::string> str);
 		int tryPassword(std::vector<std::string> str, int socket);
 		int tryNick(std::vector<std::string> str, std::map<int, User *> user, int socket);
-		int tryUser(std::vector<std::string> str, int socket);
+		int tryUser(std::vector<std::string> str, int socket, User *user);
 		std::vector<std::string> s_split(std::string str);
 		std::vector<std::string> newSplit(std::string s, std::string c);
 		
@@ -119,7 +119,8 @@ class Server
 
 		void cleanBuffer(char *buffer, int len);
 		std::string makeIdenticalChat(char *buffer, std::string name);
-		void eraseUserInMap(int socket, std::map<int, User *> userList);
+		void eraseUserInMap(int socket);
+		void eraseChanInMap(std::string chan);
 
 		// ServerHelp //
 
@@ -127,6 +128,9 @@ class Server
 		void WelcomeToIrc(int socket, User *user);
 		std::string correctChar(std::string line, char c);
 		void Ctrl_D_Join(char *buffer, std::string oldMess, std::string newMess);
+		std::string createListOfMember(std::vector<User *> all_user, Channel *channel);
+		void ChannelEraserInfo(User *user);
+		void DeleteChannel(Channel *channel);
 
 		// Commande //
 
@@ -151,7 +155,7 @@ class Server
 		void Join(int socket, std::vector<std::string> split, std::map<std::string, Channel *> channel);
 		void JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel *> channel, std::string pass);
 		void CreateChannel(User *user, std::string name);
-		void JoinZero(User *user, std::map<std::string, Channel *> channel);
+		void JoinZero(User *user);
 
 		// KICK //
 

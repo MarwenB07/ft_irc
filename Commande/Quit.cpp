@@ -28,10 +28,11 @@ void Server::Quit(User *user, std::map<std::string, Channel *> channel_list, std
 	}
 	if (line == "QUIT" || (split.size() > 1 && (*it).find(":") < 2))
 	{
-		JoinZero(user, channel_list);
+		(void)channel_list;
+		JoinZero(user);
 		close(socket);
 		send_msg(_servSocket, QUIT(user->getNickname(), reason));
 		_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), user->getNickname()), _users_nick_list.end());
-		eraseUserInMap(user->getClientSocket(), _users);
+		eraseUserInMap(user->getClientSocket());
 	}
 }

@@ -1,7 +1,10 @@
-JOIN #test,#test2,,#test3 = prb
-JOIN = send list of user in channel
-PING Askip 2 sec
-faire pour nc que ça marche avec les autre cmd
-
+token et tous aussi
+JOIN un truc inconnu renvoi pas de message
 
 BONUS : BOT
+
+si je me deco rien est detruit et je recupe toute mes info c pas bien.
+
+19 / 09 / 23 : si jamais ta une erreur mate avec la loupe 'erreur'
+
+virer les gens aui se deco du channel;

@@ -26,15 +26,12 @@ Server::Server(int port, std::string password) : _port(port), _password(password
 
 int Server::tryPassword(std::vector<std::string> str, int socket)
 {
-	(void)socket;
-	if (str.size() != 2)
-		return (-1);
-
 	std::vector<std::string>::iterator it = str.begin();
 
-	if (*it != "PASS")
+	if (str.size() >= 1 && *it != "PASS")
 		return (-1);
-	++it;
+	else if (str.size() != 2)
+			return (send_msg(socket, ERR_NEEDMOREPARAMS(std::to_string(socket), "PASS")), -1);
 	return (1);
 }
 
@@ -45,14 +42,28 @@ std::string Server::givePass(std::vector<std::string> str)
 	return (*it);
 }
 
-void Server::eraseUserInMap(int socket, std::map<int, User *> userList)
+void Server::eraseUserInMap(int socket)
 {
-	std::map<int, User *>::iterator it = userList.find(socket);
+	std::map<int, User *>::iterator it = _users.find(socket);
 
-	if (it != userList.end()) 
+	if (it != _users.end()) 
 	{
         delete it->second;
-        userList.erase(it);
+        _users.erase(it);
+    }
+	else
+    	return ;
+}
+
+void Server::eraseChanInMap(std::string chan)
+{
+	std::map<std::string, Channel *>::iterator it = _channel.find(chan);
+
+	if (it != _channel.end()) 
+	{
+		it->second->ChannelDeleteAll();
+        delete it->second;
+        _channel.erase(it);
     }
 	else
     	return ;
@@ -64,8 +75,8 @@ int Server::tryNick(std::vector<std::string> str, std::map<int, User *> user, in
 {
 	std::string nickname;
 	std::string none_first = "_0123456789";
-	std::string unauthorised = " \t\f\v";
-	
+	std::string unauthorised = ": \t\f\v[]{}\\|";
+
 	if (str.size() != 2)
 		return (-1);
 	
@@ -86,50 +97,55 @@ int Server::tryNick(std::vector<std::string> str, std::map<int, User *> user, in
 	for (int i = 0; none_first.c_str()[i]; i++)
 	{
 		if (nickname.find(none_first.c_str()[i]) < 1)
-			return (send_msg(socket, ERR_NICK), 2);
+			return (send_msg(socket, ERR_ERRONEUSNICKNAME(std::to_string(socket), nickname)), 2);
 	}
 	for (int i = 0; unauthorised.c_str()[i]; i++)
 	{
 		if (nickname.find(unauthorised.c_str()[i]) <= nickname.length())
-			return (send_msg(socket, ERR_NICK), 2);
+			return (send_msg(socket, ERR_ERRONEUSNICKNAME(std::to_string(socket), nickname)), 2);
 	}
 	for (it = user.begin(); it != user.end() ;++it)
 	{
 		if (it->second->getNickname() != "NULL_NICKNAME" && it->second->getNickname() == nickname && it->second->getClientSocket() != socket)
-			return (send_msg(socket, ERR_NICKSAME), 2);
+			return (send_msg(socket, ERR_NICKNAMEINUSE(std::to_string(socket), nickname)), 2);
 	}
 	return (1);
 }
 
 // check if my client send a good username //
 
-int Server::tryUser(std::vector<std::string> str, int socket)
+int Server::tryUser(std::vector<std::string> str, int socket, User *user)
 {
 	std::string none_first = "_0123456789";
 	std::string unauthorised = " \t\r\f\v";
 	std::string username;
 
 
-	if (str.size() != 6)
+
+	if (str.size() < 1)
 		return (-1);
 
 	std::vector<std::string>::iterator it = str.begin();
 
 	if (*it != "USER")
 		return (-1);
+	else if (user->getNickStatus() == false)
+		return (send_msg(socket, ERR_NONICKNAMEGIVEN(std::to_string(socket))), -1);
+	else if (str.size() != 6)
+		return (send_msg(socket, ERR_NEEDMOREPARAMS(user->getNickname(), (*it))), -1);
 	++it;
 
 	username = *it;
 	for (int i = 0; none_first.c_str()[i]; i++)
 	{
 		if (username.find(none_first.c_str()[i]) < 1)
-			return (send_msg(socket, ERR_USER), 2);
+			return (2);
 	}
 
 	for (int i = 0; unauthorised.c_str()[i]; i++)
 	{
 		if (username.find(unauthorised.c_str()[i]) != std::string::npos)
-			return (send_msg(socket, ERR_USER), 2);
+			return (2);
 	}
 
 	++it;
@@ -150,13 +166,11 @@ int Server::tryUser(std::vector<std::string> str, int socket)
 			if (username.find(i, 1) != std::string::npos || username.find(i - 32, 1) != std::string::npos)
 				break;
 			else if (i == 'z')
-				return (send_msg(socket, ERR_USER), 2);
+				return (2);
 		}
 	}
-
 	++it;
 	username = *it;
-
 	for (unsigned int i = 0; i <= username.length(); i++)
 	{
 		for (int i = 'a'; i <= 'z'; i++)
@@ -164,7 +178,7 @@ int Server::tryUser(std::vector<std::string> str, int socket)
 			if (username.find(i) != std::string::npos || username.find(i - 32) != std::string::npos)
 				break;
 			else if (i == 'z')
-				return (send_msg(socket, ERR_USER), 2);
+				return (2);
 		}
 	}
 	return (1);
@@ -174,6 +188,8 @@ int Server::tryUser(std::vector<std::string> str, int socket)
 
 int Server::InitServer( void )
 {
+	int option = 1;
+
 	struct sockaddr_in serverAddr;
 
 	socklen_t serverAddrLen = sizeof(serverAddr);
@@ -196,6 +212,8 @@ int Server::InitServer( void )
 	serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(getPort());
     serverAddr.sin_addr.s_addr = INADDR_ANY;
+
+	setsockopt(_servSocket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
 	// bind() = link an address with a socket //
 
@@ -239,7 +257,7 @@ int Server::StartServer( void )
 
 	char buffer[513];
 
-	while (true) 
+	while (true) // ptetre mettre ctrl c 
 	{
 		signal(SIGPIPE, SIG_IGN);
 
@@ -271,16 +289,12 @@ int Server::StartServer( void )
             if (cfd > maxSocket)
                 maxSocket = cfd;
 
-			std::cout << "newPaire" << std::endl;
-
 			_users.insert(std::make_pair(cfd, new User(cfd, clientIP)));
 
             std::string welcomeMessage = WELCOME;
             send(cfd, welcomeMessage.c_str(), welcomeMessage.length(), 0);
             _clients.push_back(cfd);
         }
-
-		std::cout << "oldest return 0" << std::endl;
 		
         for (std::vector<int>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 		{
@@ -294,34 +308,32 @@ int Server::StartServer( void )
 				{
 					_old.append(message);
 					_oldest = 1;
-					std::cout << _oldest << std::endl;
 				}
 				else if (_oldest == 1)
 				{
 					Ctrl_D_Join(buffer, _old, message);
-					std::cout << "buffer " << buffer << std::endl;
 					_oldest = 0;
 					_old = "";
 					message = buffer;
 				}
 				_message = message;
+				std::cout << "line = " << message << std::endl;
 				_splited = s_split(message);
-				std::cout << visiblechar(buffer) << std::endl;
-				std::cout << _oldest << std::endl;
-
 				if (itUser->second->getNickStatus() == false)
 					returner = tryNick(_splited, _users, clientSocket);
 				else if (itUser->second->getNickStatus() == true && itUser->second->getUserStatus() == false)
-					returner = tryUser(_splited, clientSocket);
+					returner = tryUser(_splited, clientSocket, itUser->second);
                 if (_bytesRead <= 0) 
 				{
-					if (_bytesRead < 0)
-                		std::cerr << "client[" << clientSocket <<"] was deconnected ... 😞"<< std::endl;
+					std::cerr << "client[" << clientSocket <<"] was deconnected ... 😞"<< std::endl;
                     close(clientSocket);
-					setClientConnected(1);
+					setClientConnected(-1);
                     FD_CLR(clientSocket, &readfds);
-		
-					// *function efface l'user des channel* //
+					//ChannelEraserInfo(itUser->second);
+					//// test
+					//_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
+					//_users_class_list.erase(std::remove(_users_class_list.begin(), _users_class_list.end(), itUser->second), _users_class_list.end());
+					eraseUserInMap(clientSocket);
                     _clients.erase(std::remove(_clients.begin(), _clients.end(), clientSocket), _clients.end());
 					break;
                 }
@@ -330,8 +342,9 @@ int Server::StartServer( void )
 					if (_bytesRead > 512)
 					{
 						close(clientSocket);
-						// supp le client user //
-						eraseUserInMap(clientSocket, _users);
+						ChannelEraserInfo(itUser->second);
+						eraseUserInMap(clientSocket);
+						_old = "";
 						continue;
 					}
 					else if (tryPassword(_splited, clientSocket) == 1)
@@ -342,22 +355,16 @@ int Server::StartServer( void )
 					{
 						if (UserStep(clientSocket, returner, itUser->second) == -1)
 						{
+							send_msg(itUser->first, ERR_PASSWDMISMATCH(itUser->second->getNickname()));
 							close(itUser->first);
 							_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
-							eraseUserInMap(clientSocket, _users);
+							eraseUserInMap(clientSocket);
 							FD_CLR(clientSocket, &readfds);
 							continue;
-							// test
 						}
 					}
 					else if (message == "HELPER\r\n" || message == "HELPER\n")
-					{
 						send_msg(clientSocket, HELP_MESSAGE);
-						std::cout << "getPassStatus = " << itUser->second->getPasswordStatus() << std::endl;
-						std::cout << "getNickStatus = " << itUser->second->getNickStatus() << std::endl;
-						std::cout << "getNickStatus = " << itUser->second->getUserStatus() << std::endl;
-						std::cout << "nick = " << itUser->second->getNickname() << std::endl;
-					}
 					//else
 					//	send_msg(clientSocket, ERR_USELESS);
 					returner = 0;
@@ -367,17 +374,19 @@ int Server::StartServer( void )
                     buffer[_bytesRead] = '\0';
 					if (_bytesRead > 512)
 					{
-						send_msg(clientSocket, ERR_LENGTH);
+						close(clientSocket);
+						ChannelEraserInfo(itUser->second);
+						eraseUserInMap(clientSocket);
+						_old = "";
 						continue;
 					}
 					else if (message.find("CAP LS") != std::string::npos)
 					{
-						std::cout << "cap" << std::endl;
 						cleanBuffer(buffer, 513);
 						continue;
 					}
 					else if (message == "\r\n" || message == "\n")
-						send_msg(clientSocket, INVALIDE);
+						;
 					else
 						ExectuteIrcCmd(clientSocket, message, getChannel());
                 }
@@ -527,11 +536,22 @@ void Server::AddChannelClassList(Channel *channel)
 	_channel_class_list.push_back(channel);
 }
 
+void Server::DeleteChannel(Channel *channel)
+{
+	delete channel;
+}
+
 /* destructor */
 
 // destructor //
 
 Server::~Server()
 {
-	
+		_users_nick_list.clear();
+		_splited.clear();
+		for (std::vector<User *>::iterator it = _users_class_list.begin(); it != _users_class_list.end(); ++it)
+		{
+			_users_class_list.erase(std::remove(_users_class_list.begin(), _users_class_list.end(), (*it)), _users_class_list.end());
+			//delete (*it);
+		}
 }

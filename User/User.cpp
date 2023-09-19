@@ -37,15 +37,12 @@ User & User::operator=( User const & rhs )
 
 void User::CompleteUser(std::string nickname, std::string username)
 {	
-	char *test = strdup(nickname.c_str());
-	for (int i = 0; test[i]; i++)
-	{
-		if (test[i] == '\r' || test[i] == '\n')
-			test[i] = '\0';
-	}
-	_nickname = test;
+	if (nickname.find("\r\n") != std::string::npos)
+		nickname.erase(nickname.find("\r\n"), 2);
+	else if (nickname.find("\n") != std::string::npos)
+		nickname.erase(nickname.find("\n"), 1);
+	_nickname = nickname;
 	_username = username;
-	delete test;
 }
 
 void User::MakeTrue(std::string statusName)

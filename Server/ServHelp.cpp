@@ -78,7 +78,6 @@ std::vector<std::string> Server::newSplit(std::string s, std::string c)
 void Server::Ctrl_D_Join(char *buffer, std::string oldMess, std::string newMess)
 {
 	int i = 0;
-	std::cout << "old = " << oldMess << " / new = " << newMess << std::endl;
 	cleanBuffer(buffer, 513);
 	for (; oldMess.c_str()[i];)
 	{
@@ -91,30 +90,6 @@ void Server::Ctrl_D_Join(char *buffer, std::string oldMess, std::string newMess)
 		i++;
 	}
 }
-
-// give all information //
-
-//void Server::WelcomeToIrc(int socket)
-//{
-//	send(socket, Print(IRC_WELCOME).c_str(), Print(IRC_WELCOME).length(), 0);
-//	send(socket, Print(IRC_INFO_LIST).c_str(), Print(IRC_INFO_LIST).length(), 0);
-//
-//	std::map<int, User *>::iterator use;
-//	std::string info;
-//
-//	for (std::vector<int>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-//	{	
-//		use = _users.find(*it);
-//
-//		info = s_itoa(*it);
-//		while (info.length() < 10)
-//			info.append(" ");
-//		info.append(use->second->getNickname());
-//		info.append("\n");
-//		if (use->second->getUserStatus() == true)
-//			send(socket, Print(info).c_str(), Print(info).length(), 0);
-//	}
-//}
 
 // give all information //
 
@@ -151,42 +126,42 @@ void Server::WelcomeToIrc(int socket, User *user)
 
 // functiom just to view invisible char //
 
-std::string visiblechar(char *buffer)
-{
-	char *test = strdup(buffer);
-	int j = 0;
-
-	for (int i = 0; buffer[i]; i++)
-	{
-		if (buffer[i] == '\n')
-		{
-			test[j++] = '\\';
-			test[j] = 'n';
-		}
-		else if (buffer[i] == '\r')
-		{
-			test[j++] = '\\';
-			test[j] = 'r';
-		}
-		else if (buffer[i] == '\v')
-		{
-			test[j++] = '\\';
-			test[j] = 'v';
-		}
-		else if (buffer[i] == '\f')
-		{
-			test[j++] = '\\';
-			test[j] = 'f';
-		}
-		else if (buffer[i] == '\t')
-		{
-			test[j++] = '\\';
-			test[j] = 't';
-		}
-		j++;
-	}
-	return (test);
-}
+//std::string visiblechar(char *buffer)
+//{
+//	char *test = strdup(buffer);
+//	int j = 0;
+//
+//	for (int i = 0; buffer[i]; i++)
+//	{
+//		if (buffer[i] == '\n')
+//		{
+//			test[j++] = '\\';
+//			test[j] = 'n';
+//		}
+//		else if (buffer[i] == '\r')
+//		{
+//			test[j++] = '\\';
+//			test[j] = 'r';
+//		}
+//		else if (buffer[i] == '\v')
+//		{
+//			test[j++] = '\\';
+//			test[j] = 'v';
+//		}
+//		else if (buffer[i] == '\f')
+//		{
+//			test[j++] = '\\';
+//			test[j] = 'f';
+//		}
+//		else if (buffer[i] == '\t')
+//		{
+//			test[j++] = '\\';
+//			test[j] = 't';
+//		}
+//		j++;
+//	}
+//	return (test);
+//}
 
 void Server::sends_msg(int socket, std::string message, std::vector<User *> all, int open)
 {
@@ -218,13 +193,73 @@ Channel *Server::FindChannel(std::string channelname)
 
 std::string Server::correctChar(std::string line, char c)
 {
+	int i = 0;
 	int recur = 0;
 	std::string newWord = "";
+	std::string charact = "";
 
-	for (int i = 0; line.c_str()[i]; i++)
+	while (line.c_str()[i])
 	{
-		if (line.c_str()[i] == c)
-			recur++;
+		if (line.c_str()[i] == c && recur != 1)
+		{
+			recur = 1;
+			charact = line.c_str()[i];
+			newWord.append(charact);
+		}
+		else if (line.c_str()[i] != c)
+		{
+			recur = 0;
+			charact = line.c_str()[i];
+			newWord.append(charact);
+		}
+		i++;
 	}
 	return (newWord);
+}
+
+std::string Server::createListOfMember(std::vector<User *> all_user, Channel *channel)
+{
+	std::string line = "";
+
+	for (std::vector<User *>::iterator it = all_user.begin(); it != all_user.end(); ++it)
+	{
+		if (checkIsOperator(*it, channel) == true)
+		{
+			line.append("@");
+			line.append((*it)->getNickname());
+			if (it + 1 != all_user.end())
+				line.append(" ");
+		}
+		else
+		{
+			line.append((*it)->getNickname());
+			if (it + 1 != all_user.end())
+				line.append(" ");
+		}
+	}
+	return (line);
+}
+
+void Server::ChannelEraserInfo(User *user)
+{
+	std::map<std::string, Channel *>::iterator chan;
+	std::vector<Channel *>::iterator it;
+	std::string hash = "#";
+
+	for (it = _channel_class_list.begin(); it != _channel_class_list.end(); ++it)
+	{
+		hash.append((*it)->getChannelName());
+		chan = _channel.find(hash);
+		if (AlreadyInChannel(user, chan->second) == true)
+		{
+			chan->second->EraseChannelUser(user);
+			(*it)->EraseChannelUser(user);
+			if (chan->second->getChannelSizeofClients() == 0)
+			{
+				_channel_class_list.erase(std::remove(_channel_class_list.begin(), _channel_class_list.end(), chan->second), _channel_class_list.end());
+				DeleteChannel(chan->second);
+			}
+		}
+		hash = "#";
+	}
 }

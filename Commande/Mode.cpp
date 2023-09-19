@@ -23,22 +23,33 @@ l : false
 void Server::Mode_i(Channel *channel, bool set)
 {
 	channel->setChannelInvitation(set);
+	if (set == true)
+		channel->setChannelMode("i");
+	else
+		channel->DelChannelMode("i");
 }
 
 void Server::Mode_t(Channel *channel, bool set)
 {
 	channel->setChannelTopicRestric(set);
+	if (set == true)
+		channel->setChannelMode("t");
+	else
+		channel->DelChannelMode("t");
 }
 
 void Server::Mode_k(Channel *channel, bool set, std::string setPass)
 {
-	std::cout << set << " = " << setPass << std::endl;
 	if (set == false)
+	{
 		channel->setChannelActifPass(set);
+		channel->DelChannelMode("k");
+	}
 	else if (set == true && setPass.length() > 0)
 	{
 		channel->setChannelPass(setPass);
 		channel->setChannelActifPass(set);
+		channel->setChannelMode("k");
 	}
 	else
 		return ; // msg de coco
@@ -46,6 +57,7 @@ void Server::Mode_k(Channel *channel, bool set, std::string setPass)
 
 void Server::Mode_o(Channel *channel, std::string nick, bool set)
 {
+	std::string list = "";
 	if (checkUserExist(nick) == false)
 		return ; // caca
 	User *user = FindUser(nick);
@@ -54,19 +66,35 @@ void Server::Mode_o(Channel *channel, std::string nick, bool set)
 	else if (set == false && checkIsOperator(user, channel) == false)
 		return ; // caca
 	else if (set == true && checkIsOperator(user, channel) == false)
+	{
 		channel->AddChannelOperator(user);
+		list = createListOfMember(channel->getChannelAuthorized(), channel);
+		channel->setChannelMode("o");
+		sends_msg(user->getClientSocket(), RPL_NAMREPLY(user->getNickname(), "=", channel->getChannelName() ,list), channel->getChannelAuthorized(), 0);
+		return (sends_msg(user->getClientSocket(), RPL_ENDOFNAMES(user->getNickname(), channel->getChannelName()), channel->getChannelAuthorized(), 0));
+	}
 	else if (set == false && checkIsOperator(user, channel) == true)
+	{
 		channel->DelOperator(user);
+		list = createListOfMember(channel->getChannelAuthorized(), channel);
+		channel->DelChannelMode("o");
+		sends_msg(user->getClientSocket(), RPL_NAMREPLY(user->getNickname(), "=", channel->getChannelName() ,list), channel->getChannelAuthorized(), 0);
+		return (sends_msg(user->getClientSocket(), RPL_ENDOFNAMES(user->getNickname(), channel->getChannelName()), channel->getChannelAuthorized(), 0));
+	}
 }
 
 void Server::Mode_l(Channel *channel, int limits, bool set)
 {
 	if (set == false)
+	{
 		channel->setChannelHaveClientsLimits(false);
+		channel->DelChannelMode("l");
+	}
 	else if (set == true && limits > channel->getChannelClientsLimits())
 	{
 		channel->setChannelHaveClientsLimits(true);
 		channel->setChannelClientsLimits(limits);
+		channel->setChannelMode("l");
 	}
 }
 
@@ -121,7 +149,6 @@ void Server::delMode(char mode, std::string key, Channel *channel)
 
 void Server::Mode(User *user, std::map<std::string, Channel *> channel, std::string line)
 {
-	std::cout << "start" << std::endl;
 	int status = 0;
 	int i = 0;
 	char c;
@@ -133,32 +160,30 @@ void Server::Mode(User *user, std::map<std::string, Channel *> channel, std::str
 	std::vector<std::string> split_list = s_split(line);
 	std::vector<std::string>::iterator list = split_list.begin();
 
-	std::cout << line << std::endl;
-
 	if (line == "MODE")
 		return ; // caca
 
 	++list;
 	word = *list;
 
-	if (split_list.size() <= 2)
+	if (split_list.size() < 2)
 		return ;
 
 	if (ChannelAlreadyExists(word, channel, 0) == false)
-	{
-		std::cout << "here" << std::endl;
 		return ;
-	}
-	std::cout << word << std::endl;
 	Channel *chan = FindChannel(word.c_str() + 1);
-	std::cout << "test " << split_list.size() << std::endl;
-
+	if (split_list.size() == 2)
+	{
+		if (chan->getChannelMode() == "")
+			send_msg(user->getClientSocket(), RPL_CHANNELMODEIS(user->getNickname(), chan->getChannelName(), "", chan->getChannelMode()));
+		else
+			send_msg(user->getClientSocket(), RPL_CHANNELMODEIS(user->getNickname(), chan->getChannelName(), "+", chan->getChannelMode()));
+		send_msg(user->getClientSocket(), RPL_CREATIONTIME(user->getNickname(), chan->getChannelName(), std::to_string(chan->getCreationTime())));
+	}
 	if (split_list.size() < 3)
 		return ;
 	else if (checkIsOperator(user, chan) == false)
 		return (send_msg(user->getClientSocket(), ERR_CHANOPRIVSNEEDED(user->getNickname(), word)));
-
-	std::cout << "safe" << std::endl;
 
 	++list;
 	word = *list;

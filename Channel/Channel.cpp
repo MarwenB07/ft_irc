@@ -12,9 +12,13 @@ Channel::Channel(std::string ChannelName, User *user) : _name(ChannelName)
 	_invitation = false;
 	_topic_restric = false;
 	_topic = "\r\n";
-	_channel_mode_list = "\r\n";
+	_channel_mode_list = "";
 	_sizeofClient = 1;
 	_clients_limits = -1;
+	_client_have_limits = false;
+	_creationTime = std::time(nullptr);
+	_topicCreationTime = std::time(nullptr);
+	_topic_seter = user->getNickname();
 }
 
 Channel::Channel( Channel const & src )
@@ -45,6 +49,7 @@ Channel& Channel::operator=(const Channel& rhs)
 	_invited = rhs.getInvitedList();
 	_topic_restric = rhs.getChannelTopicRestric();
 	_client_have_limits = rhs.getChannelHaveClientsLimits();
+	_creationTime = rhs.getCreationTime();
 
     return *this;
 }
@@ -77,6 +82,7 @@ void Channel::SendTopic(User *user)
 		send_msg(user->getClientSocket(), RPL_NOTOPIC(user->getNickname(), getChannelName()));
 	else
 		send_msg(user->getClientSocket(), RPL_TOPIC(user->getNickname(), getChannelName(), getChannelTopic()));
+	send_msg(user->getClientSocket(), RPL_TOPICWHOTIME(user->getNickname(), getChannelName(), getTopicSeter(), std::to_string(getTopicCreationTime())));
 }
 
 void Channel:: KickUser(User *user, User *sender, std::string reason, int c)
@@ -94,7 +100,18 @@ void Channel::PartChannel(User *user)
 {
 	if (VerifVector(_operator_list, user) == true)
 		_operator_list.erase(std::remove(_operator_list.begin(), _operator_list.end(), user), _operator_list.end());
-	_authorized.erase(std::remove(_authorized.begin(), _authorized.end(), user), _authorized.end());
+	if (VerifVector(_authorized, user) == true)
+		_authorized.erase(std::remove(_authorized.begin(), _authorized.end(), user), _authorized.end());
+}
+
+void Channel::EraseChannelUser(User *user)
+{
+	if (VerifVector(_operator_list, user) == true)
+		_operator_list.erase(std::remove(_operator_list.begin(), _operator_list.end(), user), _operator_list.end());
+	if (VerifVector(_invited, user) == true)
+		_invited.erase(std::remove(_invited.begin(), _invited.end(), user), _invited.end());
+	if (VerifVector(_authorized, user) == true)
+		_authorized.erase(std::remove(_authorized.begin(), _authorized.end(), user), _authorized.end());
 }
 
 void Channel::DelOperator(User *user)
@@ -135,6 +152,11 @@ std::string Channel::getChannelMode(void) const
 	return(_channel_mode_list);
 }
 
+std::string Channel::getTopicSeter(void) const
+{
+	return (_topic_seter);
+}
+
 std::string Channel::getChannelCreator(void) const
 {
 	return (_channel_creator);
@@ -158,6 +180,16 @@ std::vector<User *> Channel::getInvitedList(void) const
 std::map<std::string,std::string>  Channel::getUserModeList(void) const
 {
 	return (_user_mode);
+}
+
+time_t Channel::getCreationTime(void) const
+{
+	return (_creationTime);
+}
+
+time_t Channel::getTopicCreationTime(void) const
+{
+	return (_topicCreationTime);
 }
 
 bool Channel::getChannelInvitation(void) const
@@ -240,6 +272,16 @@ void Channel::setChannelTopicRestric(bool set)
 	this->_topic_restric = set;
 }
 
+void Channel::setTopicCreationTime(void)
+{
+	this->_topicCreationTime = std::time(nullptr);
+}
+
+void Channel::setTopicSeter(std::string set)
+{
+	this->_topic_seter = set;
+}
+
 void Channel::AddChannelAuthorized(User *user)
 {
 	this->_authorized.push_back(user);
@@ -275,11 +317,31 @@ void Channel::DelChannelMode(std::string set)
 			newSet.append(appen);
 		}
 	}
+	_channel_mode_list = newSet;
 }
 
 void Channel::DeleteInvited(User *user)
 {
 	this->_invited.erase(std::remove(_invited.begin(), _invited.end(), user), _invited.end());
+}
+
+void Channel::ChannelDeleteAll(void)
+{
+	for (std::vector<User *>::iterator it = _authorized.begin(); it != _authorized.end(); ++it)
+	{
+		delete *it;
+	}
+	_authorized.clear();
+	for (std::vector<User *>::iterator it = _operator_list.begin(); it != _operator_list.end(); ++it)
+	{
+		delete *it;
+	}
+	_operator_list.clear();
+	for (std::vector<User *>::iterator it = _invited.begin(); it != _invited.end(); ++it)
+	{
+		delete *it;
+	}
+	_invited.clear();
 }
 
 Channel::~Channel()

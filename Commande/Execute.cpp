@@ -14,15 +14,17 @@ void Server::ExectuteIrcCmd(int socket, std::string message, std::map<std::strin
 {
 	int cmd;
 	std::string line;
+	std::vector<std::string> CMD;
 	std::vector<std::string> splited_cmd;
-	std::vector<std::string> CMD = newSplit(message, "\r\n");
+	if (message.find("\r\n") != std::string::npos)
+		CMD = newSplit(message, "\r\n");
+	else
+		CMD = newSplit(message, "\n");
 	std::map<int, User *>::iterator use = _users.find(socket);
 	if (use == _users.end())
 		return ;
 
 	int j = CMD.size();
-
-	std::cout << j << std::endl;
 
 	std::vector<std::string>::iterator it = CMD.begin();
 
@@ -49,8 +51,10 @@ void Server::ExectuteIrcCmd(int socket, std::string message, std::map<std::strin
 			continue ;
 		else if (cmd == 9)
 			Quit(use->second, channel, line);
-		else if (cmd == -1)		
-			send_msg(socket, INVALIDE);
+		else if (cmd == 10)
+			send_msg(socket, ERR_ALREADYREGISTERED(use->second->getNickname()));
+		// else if (cmd == -1)		
+			// send_msg(socket, INVALIDE);
 		++it;
 	}
 }

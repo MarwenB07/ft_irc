@@ -2,6 +2,7 @@
 
 void Server::Kick(User *user, std::map<std::string, Channel *> channel, std::string line)
 {
+	std::string liste = "";
 	std::string word;
 	std::vector<std::string> split_list = s_split(line);
 	std::vector<std::string>::iterator list = split_list.begin();
@@ -34,7 +35,12 @@ void Server::Kick(User *user, std::map<std::string, Channel *> channel, std::str
 	else if (checkIsCreator(use, ActualChannel->second) == true)
 		return (send_msg(user->getClientSocket(), ERR_CHANOPRIVSNEEDED(user->getNickname(), word)));
 	if (split_list.size() == 3)
-		return (ActualChannel->second->KickUser(use, user, "", 0));
+	{
+		ActualChannel->second->KickUser(use, user, "", 0);
+		liste = createListOfMember(ActualChannel->second->getChannelAuthorized(), ActualChannel->second);
+		sends_msg(user->getClientSocket(), RPL_NAMREPLY(user->getNickname(), "=", ActualChannel->second->getChannelName() ,liste), ActualChannel->second->getChannelAuthorized(), 0);
+		return (sends_msg(user->getClientSocket(), RPL_ENDOFNAMES(user->getNickname(), ActualChannel->second->getChannelName()), ActualChannel->second->getChannelAuthorized(), 0));
+	}
 	
 	++list;
 	word = *list;
@@ -44,7 +50,10 @@ void Server::Kick(User *user, std::map<std::string, Channel *> channel, std::str
 	else if (split_list.size() >= 4 && word.find(":") < 2)
 	{
 		word = takeMessage(line);
-		ActualChannel->second->KickUser(use, user, "", 1);
+		ActualChannel->second->KickUser(use, user, word, 1);
+		liste = createListOfMember(ActualChannel->second->getChannelAuthorized(), ActualChannel->second);
+		sends_msg(user->getClientSocket(), RPL_NAMREPLY(user->getNickname(), "=", ActualChannel->second->getChannelName() ,liste), ActualChannel->second->getChannelAuthorized(), 0);
+		return (sends_msg(user->getClientSocket(), RPL_ENDOFNAMES(user->getNickname(), ActualChannel->second->getChannelName()), ActualChannel->second->getChannelAuthorized(), 0));
 	}
 	return ;
 }
