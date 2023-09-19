@@ -22,10 +22,8 @@ void Server::PartOfChannel(User *user, std::map<std::string, Channel *> channel,
 			{
 				_channel_class_list.erase(std::remove(_channel_class_list.begin(), _channel_class_list.end(), chanPart->second), _channel_class_list.end());	
 				eraseChanInMap(chanPart->first);
-				std::cout << "delete channel" << std::endl;
 				return ;
 			}
-			std::cout << "part channel" << std::endl;
 			return ;
 		}
 	}
