@@ -24,10 +24,9 @@ SRC =	ft_irc.cpp \
 		Commande/PrivateMsg.cpp \
 		Commande/Kick.cpp \
 		Commande/Find.cpp \
-		Commande/Pong.cpp \
 		Commande/Quit.cpp \
 		User/User.cpp \
-		Channel/Channel.cpp
+		Channel/Channel.cpp 
 #
 OBJS = $(SRC:.cpp=.o)
 

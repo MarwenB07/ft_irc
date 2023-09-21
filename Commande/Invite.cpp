@@ -43,22 +43,20 @@ void Server::Invite(User *user, std::map<std::string, Channel *> channel, std::s
 	++list;
 	word = *list;
 	if (ChannelAlreadyExists(word, channel, 0) == false)
-		return (delete use, send_msg(user->getClientSocket(), ERR_NOSUCHCHANNEL(user->getNickname(), word)));
-	
+		return (send_msg(user->getClientSocket(), ERR_NOSUCHCHANNEL(user->getNickname(), word)));
 
 	std::map<std::string, Channel *>::iterator theChannel = channel.find(word.c_str() + 1);
 
 	if (AlreadyInChannel(user, theChannel->second) == false)
-		return (delete use, send_msg(user->getClientSocket(), ERR_NOTONCHANNEL(user->getNickname(), word)));
-	else if (theChannel->second->getChannelInvitation() == false)
-		return (delete use);
+		return (send_msg(user->getClientSocket(), ERR_NOTONCHANNEL(user->getNickname(), word)));
+	else if (theChannel->second->getChannelInvitation() == false && use->getNickname() != "BotFeur")
+		return ;
 	else if (checkIsOperator(user, theChannel->second) == false)
-		return (delete use, send_msg(user->getClientSocket(), ERR_CHANOPRIVSNEEDED(user->getNickname(), word)));
+		return (send_msg(user->getClientSocket(), ERR_CHANOPRIVSNEEDED(user->getNickname(), word)));
 	else if (AlreadyInChannel(use, theChannel->second) == true)
-		return (delete use, send_msg(user->getClientSocket(), ERR_USERONCHANNEL(user->getNickname(), use->getNickname() ,word)));
+		return (send_msg(user->getClientSocket(), ERR_USERONCHANNEL(user->getNickname(), use->getNickname() ,word)));
 	
 	theChannel->second->AddInvitedList(use);
-	send_msg(user->getClientSocket(), INVITE(user->getNickname(), use->getNickname() , theChannel->first));
-	send_msg(use->getClientSocket(), RPL_INVITING(user->getNickname(), use->getNickname(), theChannel->second->getChannelName()));
-	delete use;
+	send_msg(use->getClientSocket(), INVITE(user->getNickname(), use->getNickname() , theChannel->first));
+	send_msg(user->getClientSocket(), RPL_INVITING(user->getNickname(), use->getNickname(), theChannel->second->getChannelName()));
 }

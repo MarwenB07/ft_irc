@@ -111,7 +111,10 @@ void Channel::EraseChannelUser(User *user)
 	if (VerifVector(_invited, user) == true)
 		_invited.erase(std::remove(_invited.begin(), _invited.end(), user), _invited.end());
 	if (VerifVector(_authorized, user) == true)
+	{
+		std::cout << "test" << std::endl;
 		_authorized.erase(std::remove(_authorized.begin(), _authorized.end(), user), _authorized.end());
+	}
 }
 
 void Channel::DelOperator(User *user)

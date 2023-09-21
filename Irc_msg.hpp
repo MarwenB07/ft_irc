@@ -14,7 +14,7 @@ l_o_t_m = line of the motd
 
 /* all Irc Macro code  */
 
-					/* Normal Macro in Irc */
+	/* Normal Macro in Irc */
 
 // Join the server //
 
@@ -22,7 +22,7 @@ l_o_t_m = line of the motd
 # define RPL_WELCOME(client, servername, user, host) (":localhost 001 " + client + " :Welcome to the " + servername + " Network, " + client + "!" + user + "@" + host + "\r\n") // 001
 # define RPL_YOURHOST(client, servername, version) (":localhost 002 " + client + " :Your host is " + servername + ", running version " + version + "\r\n") // 002
 # define RPL_CREATED(client, datetime) (":localhost 003 " + client + " :This server was created " + datetime + "\r\n") // 003
-# define RPL_MYINFO(client, servername, version, a_u_m, a_c_m, c_m_w_a_p) (":localhost 004 " + client + " " + servername + " " + version + " " + a_u_m + a_c_m + " " + c_m_w_a_p + "\r\n") // 004
+# define RPL_MYINFO(client, servername, version, a_u_m, a_c_m, c_m_w_a_p) (":localhost 004 " + client + " " + servername + " " + version + " " + a_u_m + " " + a_c_m + " " + c_m_w_a_p + "\r\n") // 004
 # define RPL_ISUPPORT(client, token) (":localhost 005 " + client + " " + token + " :are supported by this server\r\n") // 005
 
 # define RPL_LUSERCLIENT(client, entier) (":localhost 251 " + client + " :There are " + entier + " users and 0 invisible on 1 servers\r\n") // 251
@@ -119,7 +119,6 @@ KICK -
 
 // function //
 
-std::string visiblechar(char *buffer);
 std::string takeMessage(std::string message);
 
 void send_msg(int socket, std::string message);

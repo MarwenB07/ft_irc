@@ -252,7 +252,7 @@ void Server::ChannelEraserInfo(User *user)
 		chan = _channel.find(hash);
 		if (AlreadyInChannel(user, chan->second) == true)
 		{
-			chan->second->EraseChannelUser(user);
+			//chan->second->EraseChannelUser(user);
 			(*it)->EraseChannelUser(user);
 			if (chan->second->getChannelSizeofClients() == 0)
 			{

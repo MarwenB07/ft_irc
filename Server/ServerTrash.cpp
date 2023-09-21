@@ -16,6 +16,7 @@ int Server::UserStep(int socket, int returner, User *user)
 		WelcomeToIrc(socket, user);
 		AddUserClassList(user);
 		user->MakeTrue("PASS");
+		std::cout << "USER fait" << std::endl;
 		return (1);
 	}
 	return (0);

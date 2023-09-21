@@ -33,6 +33,8 @@ PASS <password>\n\
 NICK <nickname>\n\
 USER <username> 0 * :<realname> Exemple : USER guest 0 * :Bart Simpson\n\r\n"
 
+# define HELPER "\nBot : BotFeur\r\n"
+
 // presentation //
 
 # define IRC_WELCOME "--- [ Welcome to IRC Serve ] ---\n\r\n"
@@ -87,6 +89,8 @@ class Server
 		int _actually_connected;
 		int _max;
 		int _oldest;
+
+		bool _bot;
 
 		time_t _initialTime;
 
