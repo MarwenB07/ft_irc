@@ -1,0 +1,5 @@
+deco les gens quand ya ctrl c
+
+bot -> chan -> ctrl d bot quitte pqs ou seg
+
+enlever le message  du gars quand tu join
