@@ -19,19 +19,6 @@ void Server::cleanBuffer(char *buffer, int len)
 		buffer[i] = '\0';
 }
 
-// link the nickname and the message //
-
-std::string Server::makeIdenticalChat(char *buffer, std::string name)
-{
-	std::string namedChat;
-
-	namedChat = name.erase(name.length() - 1, name.length());
-	namedChat.append(" : ");
-	namedChat.append(buffer);
-
-	return (namedChat);
-}
-
 // imagine tu sais pas utiliser substr ... //
 
 std::vector<std::string> Server::s_split(std::string str)
@@ -109,7 +96,7 @@ void Server::WelcomeToIrc(int socket, User *user)
 	// mettre operator
 
 	
-	send_msg(socket, RPL_LUSEROP(user->getNickname(), s_itoa(getNbClient()))); // 252
+	send_msg(socket, RPL_LUSEROP(user->getNickname())); // 252
 	send_msg(socket, RPL_LUSERCHANNELS(user->getNickname(), s_itoa(getNbClient()))); // 254 
 	send_msg(socket, RPL_LUSERME(user->getNickname(), s_itoa(getNbClient()))); // 255
 	send_msg(socket, RPL_LOCALUSERS(user->getNickname(), s_itoa(getNbClient()), s_itoa(getMaxClient()))); // 265

@@ -24,33 +24,11 @@
 #include "../Channel/Channel.hpp"
 #include "../Irc_msg.hpp"
 
-// define //
-
-# define NB_CLIENTS 10
-
-# define HELP_MESSAGE "\nIn order :\n\n\
-PASS <password>\n\
-NICK <nickname>\n\
-USER <username> 0 * :<realname> Exemple : USER guest 0 * :Bart Simpson\n\r\n"
-
-# define HELPER "\nBot : BotFeur\r\n"
-
 // presentation //
 
-# define IRC_WELCOME "--- [ Welcome to IRC Serve ] ---\n\r\n"
 # define IRC_INFO_LIST "SOCKET    NICKNAME\r\n"
 
-// good //
-
-# define START	  "\033[1;35m[IRC SERVER]\033[0;0m : Waiting connexion ..."
-# define WELCOME  "Welcome to ft_irc server\r\n"
-# define GoodPass "Good Password\r\n"
-# define GoodNick "Good Nickname\r\n"
-# define GoodUser "Good Usernamen\n\r\n"
-
 // bad //
-
-# define ERR_PASS "Bad password.\r\n"
 
 # define ERR_NICKLENGTH "Invalide length for your nickname. (to allow 3 - 9 character)\r\n"
 # define ERR_NICK       "Invalide nickname\r\n"
@@ -68,9 +46,7 @@ USER <username> 0 * :<realname> Exemple : USER guest 0 * :Bart Simpson\n\r\n"
 // PRIVMSG //
 
 # define PRIVMSG_ERR "Invalide commande PRIVMSG\r\n" 
-# define PRIVMSG_ERR_USER(name) (name + " doesn't exist\r\n")
-# define PRIVMSG(nick, ClientUser, message) (":" + nick + " PRIVMSG " + ClientUser + " " + message + "\r\n")
-# define PRIVMSG_CHANNEL(nick, channel, message) (":" + nick + " PRIVMSG " + channel + " " + message + "\r\n")
+
 
 // class //
 
@@ -122,7 +98,6 @@ class Server
 		// semi-usefull //
 
 		void cleanBuffer(char *buffer, int len);
-		std::string makeIdenticalChat(char *buffer, std::string name);
 		void eraseUserInMap(int socket);
 		void eraseChanInMap(std::string chan);
 
@@ -168,7 +143,7 @@ class Server
 		// PART //
 
 		void Part(User *user, std::map<std::string, Channel *> channel, std::string line);
-		void PartOfChannel(User *user, std::map<std::string, Channel *> channel, std::string the_chan);
+		void PartOfChannel(User *user, std::map<std::string, Channel *> channel, std::string the_chan, std::string reason);
 
 		// INVITE //
 
@@ -177,7 +152,7 @@ class Server
 
 		// QUIT //
 
-		void Quit(User *user, std::map<std::string, Channel *> channel_list, std::string line);
+		void Quit(User *user, std::string line);
 
 		// MODE //
 
@@ -194,8 +169,7 @@ class Server
 		// Trash //
 
 		int UserStep(int socket, int returner, User *user);
-		void NickStep(int socket, std::string message, int returner, User *user);
-		void PassStep(int socket, int returner, User *user);
+		int NickStep(std::string message, int returner, User *user);
 
 		// Check //
 
@@ -215,6 +189,7 @@ class Server
 		void AddChannelClassList(Channel *channel);
 		void setClientConnected(int set);
 		void UpNbClients(void);
+		void DownNbClients(void);
 
 		// Find //
 

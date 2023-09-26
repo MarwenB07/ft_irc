@@ -2,22 +2,17 @@
 
 // probleme ne reconnais pas qu'il a quitter
 // no reason
-void Server::PartOfChannel(User *user, std::map<std::string, Channel *> channel, std::string the_chan)
+void Server::PartOfChannel(User *user, std::map<std::string, Channel *> channel, std::string the_chan, std::string reason)
 {
-	std::string reason = "";
 	the_chan.erase(0, 1);
 	for (std::vector<Channel *>::iterator it = _channel_class_list.begin(); it != _channel_class_list.end(); ++it)
 	{
 		if (ChannelAlreadyExists(the_chan, channel, 1) == true && AlreadyInChannel(user, (*it)) == true)
 		{
-			std::cout << "PART used = " << std::endl;
 			std::map<std::string, Channel *>::iterator chanPart = channel.find(the_chan);
+			sends_msg(user->getClientSocket(), PART(user->getNickname(), chanPart->first, reason), chanPart->second->getChannelAuthorized(), 0);
 			chanPart->second->PartChannel(user);
 			chanPart->second->setChannelSizeofClients(chanPart->second->getChannelSizeofClients() - 1);
-			send_msg(user->getClientSocket(), PART(user->getNickname(), chanPart->first, reason));
-			std::string list = createListOfMember(chanPart->second->getChannelAuthorized(), chanPart->second);
-			sends_msg(user->getClientSocket(), RPL_NAMREPLY(user->getNickname(), "=", chanPart->second->getChannelName() ,list), chanPart->second->getChannelAuthorized(), 1);
-			sends_msg(user->getClientSocket(), RPL_ENDOFNAMES(user->getNickname(), chanPart->second->getChannelName()), chanPart->second->getChannelAuthorized(), 1);
 			if (chanPart->second->getChannelSizeofClients() == 0)
 			{
 				_channel_class_list.erase(std::remove(_channel_class_list.begin(), _channel_class_list.end(), chanPart->second), _channel_class_list.end());	
@@ -37,6 +32,7 @@ void Server::Part(User *user, std::map<std::string, Channel *> channel, std::str
 	std::vector<std::string> split = s_split(line);
 	std::vector<std::string>::iterator w = split.begin();
 	std::map<std::string, Channel *>::iterator it;
+	std::string reason = "";
 
 	++w;
 	word = *w;
@@ -44,8 +40,13 @@ void Server::Part(User *user, std::map<std::string, Channel *> channel, std::str
 
 	if (line == "PART")
 		return (send_msg(user->getClientSocket(), ERR_NEEDMOREPARAMS(user->getNickname(), line)));
-	else if (split.size() == 3)
+	else if ((split.size() == 3 && line.find(":") != std::string::npos) || split.size() == 2)
 	{
+		if (split.size() == 3)
+		{
+			reason = takeMessage(line + " ");
+			reason.erase(0, 1);
+		}
 		for (std::vector<std::string>::iterator it = channelname.begin(); it != channelname.end(); ++it)
 		{
 			word = *it;
@@ -61,7 +62,7 @@ void Server::Part(User *user, std::map<std::string, Channel *> channel, std::str
 				send_msg(user->getClientSocket(), ERR_NOTONCHANNEL(user->getNickname(), *it));
 				continue;
 			}
-			PartOfChannel(user, channel, *it);
+			PartOfChannel(user, channel, *it, reason);
 		}
 	}
 	return ;

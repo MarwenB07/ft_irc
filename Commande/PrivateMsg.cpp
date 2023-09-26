@@ -11,7 +11,7 @@ std::string takeMessage(std::string message)
 	if (message.find(":") != std::string::npos)
 	{
 		i = message.find(":");
-		sended = message.substr(i, message.length() - i);
+		sended = message.substr(i, message.length() - (i + 1));
 		return (sended);
 	}
 	return ("NONE");
@@ -37,19 +37,21 @@ void Server::PrivateMsg(std::map<int, User *> users, std::vector<std::string> bu
 	std::string sended_message = takeMessage(getMessage());
 	std::string user_client;
 
-	++message;
+	std::cout << sended_message << std::endl; 
 
-	if (sended_message == "NONE")
-	{
-		send_msg(socket, PRIVMSG_ERR); 
-		return ;
-	}
+	++message;
 	
 	std::map<int, User *>::iterator cuser = users.find(socket);
 	user_client = cuser->second->getNickname();
 	std::vector<std::string> nickmame = catch_nickname(buffer);
 	std::vector<std::string>::iterator itt = nickmame.begin();
 	std::string first = *itt;
+
+	if (sended_message == "NONE" || sended_message == ":")
+	{
+		send_msg(socket, ERR_NOTEXTTOSEND(cuser->second->getNickname())); 
+		return ;
+	}
 
 	if (first.find('#') != std::string::npos && first.find('#') < 1)
 	{
@@ -60,10 +62,10 @@ void Server::PrivateMsg(std::map<int, User *> users, std::vector<std::string> bu
 			{
 				std::map<std::string, Channel *>::iterator channel = channelist.find(first.c_str() + 1);
 				if (AlreadyInChannel(cuser->second, channel->second) == true)
-					channel->second->SendMsgToChannel(PRIVMSG_CHANNEL(cuser->second->getNickname(), first, sended_message), socket);
+					channel->second->SendMsgToChannel(PRIVMSG(cuser->second->getNickname(), first, sended_message), socket);
 			}
 			else
-				send_msg(socket, UNKNOW_CHANNEL(first)); 
+				send_msg(socket, ERR_NOSUCHNICK(cuser->second->getNickname(), first)); 
 		}
 	}
 	else
@@ -77,7 +79,7 @@ void Server::PrivateMsg(std::map<int, User *> users, std::vector<std::string> bu
 				send_msg(dst_socket, PRIVMSG(user_client, user->second->getNickname(), sended_message));
 			}
 			else
-				send_msg(socket, PRIVMSG_ERR_USER(*it)); 
+				send_msg(socket, ERR_NOSUCHNICK(cuser->second->getNickname(), (*it)));
 		}
 	}
 }

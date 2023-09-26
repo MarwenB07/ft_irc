@@ -91,9 +91,15 @@ void Channel:: KickUser(User *user, User *sender, std::string reason, int c)
 		_operator_list.erase(std::remove(_operator_list.begin(), _operator_list.end(), user), _operator_list.end());
 	_authorized.erase(std::remove(_authorized.begin(), _authorized.end(), user), _authorized.end());
 	if (c == 0)
+	{
+		send_msg(sender->getClientSocket(), KICKED(sender->getNickname(), getChannelName(), user->getNickname(), reason));
 		send_msg(user->getClientSocket(), KICKED(sender->getNickname(), getChannelName(), user->getNickname(), reason));
+	}
 	else
+	{
+		send_msg(sender->getClientSocket(), KICKED(sender->getNickname(), getChannelName(), user->getNickname(), reason.erase(0, 1)));
 		send_msg(user->getClientSocket(), KICKED(sender->getNickname(), getChannelName(), user->getNickname(), reason.erase(0, 1)));
+	}
 }
 
 void Channel::PartChannel(User *user)
@@ -111,10 +117,7 @@ void Channel::EraseChannelUser(User *user)
 	if (VerifVector(_invited, user) == true)
 		_invited.erase(std::remove(_invited.begin(), _invited.end(), user), _invited.end());
 	if (VerifVector(_authorized, user) == true)
-	{
-		std::cout << "test" << std::endl;
 		_authorized.erase(std::remove(_authorized.begin(), _authorized.end(), user), _authorized.end());
-	}
 }
 
 void Channel::DelOperator(User *user)

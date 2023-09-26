@@ -75,8 +75,8 @@ void Server::eraseChanInMap(std::string chan)
 int Server::tryNick(std::vector<std::string> str, std::map<int, User *> user, int socket)
 {
 	std::string nickname;
-	std::string none_first = "_0123456789";
-	std::string unauthorised = ": \t\f\v[]{}\\|";
+	std::string none_first = "#:";
+	std::string unauthorised = " ";
 
 	if (str.size() != 2)
 		return (-1);
@@ -264,9 +264,9 @@ int Server::StartServer( void )
 
         fd_set currentfd = readfds;
 
-        if (select(maxSocket + 1, &currentfd, NULL, NULL, NULL) < 0) 
+        if (select(FD_SETSIZE, &currentfd, NULL, NULL, NULL) < 0)
 		{
-            std::cerr << "Error in select. 😞\n";
+            std::cerr << "Error in select. 😞" << std::endl;
             return -1;
         }
 		else
@@ -277,7 +277,7 @@ int Server::StartServer( void )
         	    cfd = accept(_servSocket, (struct sockaddr*)&clientAddr, &clientAddrLen);
 
         	    std::cout << "Connection established with client : socket[" << cfd << "]" << std::endl;
-
+				UpNbClients();
         	    FD_SET(cfd, &readfds);
 
 				char clientIP[INET_ADDRSTRLEN];
@@ -304,7 +304,22 @@ int Server::StartServer( void )
         	    if (FD_ISSET(clientSocket, &currentfd)) 
 				{
         	        _bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+					if (_bytesRead > 512)
+					{
+						cleanBuffer(buffer, 513);
+						ChannelEraserInfo(itUser->second);
+						//std::cout << "oui" << std::endl;
+						_Pass = "";
+						if (itUser->second->getUserStatus() == true)
+							eraseUserInMap(clientSocket);
+						if (itUser->second->getNickStatus() == true)
+							_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
+						_old = "";
+						continue;
+					}
 					message = buffer;
+
+					std::cout << buffer << std::endl;
 					if (message.find("\n") == std::string::npos)
 					{
 						_old.append(message);
@@ -318,7 +333,6 @@ int Server::StartServer( void )
 						message = buffer;
 					}
 					_message = message;
-					std::cout << "line = " << message << std::endl;
 					_splited = s_split(message);
 					if (itUser->second->getNickStatus() == false)
 						returner = tryNick(_splited, _users, clientSocket);
@@ -326,39 +340,45 @@ int Server::StartServer( void )
 						returner = tryUser(_splited, clientSocket, itUser->second);
         	        if (_bytesRead <= 0) 
 					{
-						std::cerr << "client[" << clientSocket <<"] was deconnected ... 😞"<< std::endl;
+						std::cerr << "client[" << clientSocket <<"] was disconnected ... 😞"<< std::endl;
         	            close(clientSocket);
+						_Pass = "";
+						DownNbClients();
 						setClientConnected(-1);
-						ChannelEraserInfo(itUser->second);
-						//// test
-						//JoinZero(itUser->second);
-						//_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
-						//_users_class_list.erase(std::remove(_users_class_list.begin(), _users_class_list.end(), itUser->second), _users_class_list.end());
-						//eraseUserInMap(clientSocket);
+						_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
+						_users_class_list.erase(std::remove(_users_class_list.begin(), _users_class_list.end(), itUser->second), _users_class_list.end());
+						if (itUser->second->getUserStatus() == true)
+							eraseUserInMap(clientSocket);
         	            _clients.erase(std::remove(_clients.begin(), _clients.end(), clientSocket), _clients.end());
 						FD_CLR(clientSocket, &readfds);
 						break;
         	        }
 					else if (_bytesRead > 0 && (!itUser->second->getPasswordStatus() || !itUser->second->getNickStatus() || !itUser->second->getUserStatus()))
 					{
-						if (_bytesRead > 512)
-						{
-							close(clientSocket);
-							ChannelEraserInfo(itUser->second);
-							eraseUserInMap(clientSocket);
-							_old = "";
-							continue;
-						}
-						else if (tryPassword(_splited, clientSocket) == 1)
+						if (tryPassword(_splited, clientSocket) == 1)
 							_Pass = givePass(_splited);
 						else if (returner > 0 && itUser->second->getNickStatus() == false)
-							NickStep(clientSocket, message, returner, itUser->second);
+						{
+							if (NickStep(message, returner, itUser->second) == -1)
+							{
+								_Pass = "";
+								send_msg(itUser->first, ERR_PASSWDMISMATCH(itUser->second->getNickname()));
+								close(itUser->first);
+								DownNbClients();
+								_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
+								eraseUserInMap(clientSocket);
+								FD_CLR(clientSocket, &readfds);
+								continue;
+							}
+						}
 						else if (returner > 0 && itUser->second->getUserStatus() == false && itUser->second->getNickStatus() == true)
 						{
 							if (UserStep(clientSocket, returner, itUser->second) == -1)
 							{
+								_Pass = "";
 								send_msg(itUser->first, ERR_PASSWDMISMATCH(itUser->second->getNickname()));
 								close(itUser->first);
+								DownNbClients();
 								_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
 								eraseUserInMap(clientSocket);
 								FD_CLR(clientSocket, &readfds);
@@ -374,15 +394,7 @@ int Server::StartServer( void )
 					else
 					{
         	            buffer[_bytesRead] = '\0';
-						if (_bytesRead > 512)
-						{
-							close(clientSocket);
-							ChannelEraserInfo(itUser->second);
-							eraseUserInMap(clientSocket);
-							_old = "";
-							continue;
-						}
-						else if (message.find("CAP LS") != std::string::npos)
+						if (message.find("CAP LS") != std::string::npos)
 						{
 							cleanBuffer(buffer, 513);
 							continue;
@@ -517,6 +529,11 @@ std::map<int, User *> Server::getUser(void) const
 void Server::UpNbClients(void)
 {
 	_nbClient += 1;
+}
+
+void Server::DownNbClients(void)
+{
+	_nbClient -= 1;
 }
 
 void Server::setClientConnected(int set)

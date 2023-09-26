@@ -28,16 +28,18 @@ void Server::Topic(User *user, std::map<std::string, Channel *> channel, std::st
 		ActualChannel->second->setChannelTopic("\r\n");
 		ActualChannel->second->setTopicCreationTime();
 		ActualChannel->second->setTopicSeter(user->getNickname());
+		send_msg(user->getClientSocket(), RPL_TOPICWHOTIME(user->getNickname(), ActualChannel->second->getChannelName(), ActualChannel->second->getTopicSeter(), std::to_string(ActualChannel->second->getTopicCreationTime())));
 	}
 	else if (split_list.size() >= 3 && word.find(":") < 2)
 	{
 		word = takeMessage(line);
-		word.erase(0, 2);
+		word.erase(0, 1);
 		if (word == "NONE")
 			ActualChannel->second->setChannelTopic("\r\n");
 		else
 			ActualChannel->second->setChannelTopic(word.append("\r\n"));
 		ActualChannel->second->setTopicCreationTime();
 		ActualChannel->second->setTopicSeter(user->getNickname());
+		send_msg(user->getClientSocket(), RPL_TOPICWHOTIME(user->getNickname(), ActualChannel->second->getChannelName(), ActualChannel->second->getTopicSeter(), std::to_string(ActualChannel->second->getTopicCreationTime())));
 	}
 }

@@ -37,9 +37,7 @@ void Server::Kick(User *user, std::map<std::string, Channel *> channel, std::str
 	if (split_list.size() == 3)
 	{
 		ActualChannel->second->KickUser(use, user, "", 0);
-		liste = createListOfMember(ActualChannel->second->getChannelAuthorized(), ActualChannel->second);
-		sends_msg(user->getClientSocket(), RPL_NAMREPLY(user->getNickname(), "=", ActualChannel->second->getChannelName() ,liste), ActualChannel->second->getChannelAuthorized(), 0);
-		return (sends_msg(user->getClientSocket(), RPL_ENDOFNAMES(user->getNickname(), ActualChannel->second->getChannelName()), ActualChannel->second->getChannelAuthorized(), 0));
+		return;
 	}
 	
 	++list;
@@ -51,9 +49,7 @@ void Server::Kick(User *user, std::map<std::string, Channel *> channel, std::str
 	{
 		word = takeMessage(line);
 		ActualChannel->second->KickUser(use, user, word, 1);
-		liste = createListOfMember(ActualChannel->second->getChannelAuthorized(), ActualChannel->second);
-		sends_msg(user->getClientSocket(), RPL_NAMREPLY(user->getNickname(), "=", ActualChannel->second->getChannelName() ,liste), ActualChannel->second->getChannelAuthorized(), 0);
-		return (sends_msg(user->getClientSocket(), RPL_ENDOFNAMES(user->getNickname(), ActualChannel->second->getChannelName()), ActualChannel->second->getChannelAuthorized(), 0));
+		return ;
 	}
 	return ;
 }

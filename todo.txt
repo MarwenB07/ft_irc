@@ -1,3 +1,30 @@
 deco les gens quand ya ctrl c
 
 bot -> chan -> ctrl d bot quitte pqs ou seg
+
+enlever le message  du gars quand tu join
+
+page wiki probleme
+
+Le password qui se reset pas
+
+Le nombre de user change pas quand qqn quitte
+
+kick line + 1 reason
+
+TOPIC n'affiche pas que le topic a chagner
+TOPIC supprime les lettres de debut et de la fin (salut a tous --> alut a tou)
+
+faut pas etre channel operator pour inviter le bot
+
+KICK marche pas sans message
+
+pas de message d'erreur d'INVITE
+INVITE envoie le message d'invite dans le channel ?
+
+PRIVMSG erreur
+
+
+
+
+(LES DEUX POINTS)

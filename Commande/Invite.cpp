@@ -49,10 +49,6 @@ void Server::Invite(User *user, std::map<std::string, Channel *> channel, std::s
 
 	if (AlreadyInChannel(user, theChannel->second) == false)
 		return (send_msg(user->getClientSocket(), ERR_NOTONCHANNEL(user->getNickname(), word)));
-	else if (theChannel->second->getChannelInvitation() == false && use->getNickname() != "BotFeur")
-		return ;
-	else if (checkIsOperator(user, theChannel->second) == false)
-		return (send_msg(user->getClientSocket(), ERR_CHANOPRIVSNEEDED(user->getNickname(), word)));
 	else if (AlreadyInChannel(use, theChannel->second) == true)
 		return (send_msg(user->getClientSocket(), ERR_USERONCHANNEL(user->getNickname(), use->getNickname() ,word)));
 	

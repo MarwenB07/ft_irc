@@ -268,7 +268,4 @@ void Server::Mode(User *user, std::map<std::string, Channel *> channel, std::str
 			i++;
 		}
 	}
-	std::cout << "MODE k = " << chan->getChannelActifPass() << std::endl;
-	std::cout << "MODE t = " << chan->getChannelTopicRestric() << std::endl; 
-	std::cout << "MODE i = " << chan->getChannelInvitation() << std::endl; 
 }

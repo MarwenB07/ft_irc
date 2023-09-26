@@ -40,6 +40,7 @@
 # define PHRASE_4 "Tu vas faire quoi avec tes banques ?"
 # define PHRASE_5 "Faut lire Berserk si jamais ..."
 # define PHRASE_6 "Funfact 100 pourcent des gens qui ne respire pas pendant plus de 20 min meurt ... pas de probleme bg."
+# define PHRASE_7 "Femme a lunette, femme a kek**et."
 
 // Troll //
 

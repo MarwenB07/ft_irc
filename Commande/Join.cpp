@@ -16,8 +16,8 @@ void Server::CreateChannel(User *user, std::string name)
 		_channel_class_list.push_back(chan->second);
 		list = createListOfMember(chan->second->getChannelAuthorized(), chan->second);
 		sends_msg(user->getClientSocket(), JOIN(user->getNickname(), chan->second->getChannelName()), chan->second->getChannelAuthorized(), 0);
-		sends_msg(user->getClientSocket(), RPL_NAMREPLY(user->getNickname(), "=", chan->second->getChannelName() ,list), chan->second->getChannelAuthorized(), 0);
-		std::cout << "create channel" << std::endl;
+		sends_msg(user->getClientSocket(), RPL_NAMREPLY(user->getNickname(), "=", chan->second->getChannelName() ,list), chan->second->getChannelAuthorized(), 0); 
+		sends_msg(user->getClientSocket(), RPL_ENDOFNAMES(user->getNickname(), chan->second->getChannelName()), chan->second->getChannelAuthorized(), 0);
 	}
 }
 
@@ -45,7 +45,6 @@ void Server::JoinZero(User *user)
 void Server::JoinChannel(int socket, std::string nickname, std::string name, std::map<std::string, Channel *> channel, std::string pass)
 {
 	std::string list;
-	std::cout << name << std::endl;
 	std::map<std::string, Channel *>::iterator canal = channel.find(name);
 	std::map<int, User *>::iterator user = _users.find(socket);
 	if (canal->second->getChannelInvitation() == true)
@@ -85,7 +84,6 @@ void Server::Join(int socket, std::vector<std::string> split, std::map<std::stri
 	word = *w;
 	word = correctChar(word, ',');
 	channelname = newSplit(word, ",");
-	std::cout << split.size() << std::endl;
 	if (split.size() == 2 && word == "0")
 		JoinZero(user->second);
 	else if (split.size() == 2)

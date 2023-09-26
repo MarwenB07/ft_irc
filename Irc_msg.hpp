@@ -26,7 +26,7 @@ l_o_t_m = line of the motd
 # define RPL_ISUPPORT(client, token) (":localhost 005 " + client + " " + token + " :are supported by this server\r\n") // 005
 
 # define RPL_LUSERCLIENT(client, entier) (":localhost 251 " + client + " :There are " + entier + " users and 0 invisible on 1 servers\r\n") // 251
-# define RPL_LUSEROP(client, entier) (":localhost 252 " + client + " " + entier + " :operator(s) online\r\n") // 252
+# define RPL_LUSEROP(client) (":localhost 252 " + client + " 0 :operator(s) online\r\n") // 252
 # define RPL_LUSERCHANNELS(client, entier) (":localhost 254 " + client + " :channels formed\r\n") // 254
 # define RPL_LUSERME(client, entier) (":localhost 255 " + client + " :I have " + entier + " clients and 1 servers\r\n") // 255
 # define RPL_LOCALUSERS(client, u, m) (":localhost 265 " + client + " " + u + " " + m + ":Current local users " + u + " max " + m + "\r\n") // 265
@@ -35,17 +35,6 @@ l_o_t_m = line of the motd
 # define RPL_MOTD(client, l_o_t_m) ( ":localhost 372 " + client + " :" + l_o_t_m + "\r\n") // 372
 # define RPL_ENDOFMOTD(client) ( ":localhost 376 " + client + " :End of /MOTD command.\r\n") // 376
 
-
-// JOIN a channel //
-
-/*
-
-ERR_NEEDMOREPARAMS              ERR_BANNEDFROMCHAN
-ERR_INVITEONLYCHAN              ERR_BADCHANNELKEY
-ERR_CHANNELISFULL               ERR_BADCHANMASK
-ERR_NOSUCHCHANNEL               ERR_TOOMANYCHANNELS
-
-*/
 
 
 # define RPL_CHANNELMODEIS(client, channel, modestring, mode_arguments) (":localhost 324 " + client + " #" + channel + " " + modestring + mode_arguments + "...\r\n") // 324
@@ -59,7 +48,9 @@ ERR_NOSUCHCHANNEL               ERR_TOOMANYCHANNELS
 # define RPL_NAMREPLY(client, symbol, channel, user) (":localhost 353 " + client + " " + symbol + " #" + channel + " :" + user + " \r\n") // 353
 
 # define RPL_ENDOFNAMES(client, channel) (":localhost 366 " + client + " #" + channel + " :End of /NAMES list\r\n") // 366
+# define ERR_NOSUCHNICK(client, nickname) (":localhost 401 " + client + " " + nickname + " :No such nick/channel\r\n") // 401
 # define ERR_NOSUCHCHANNEL(client, channel) (":localhost 403 " + client + " " + channel + " :No such channel\r\n") // 403
+# define ERR_NOTEXTTOSEND(client) (":localhost 412 " + client +  " :No text to send\r\n")
 # define ERR_NONICKNAMEGIVEN(client) (":localhost 431 " + client + " :No nickname given\r\n") // 431
 # define ERR_ERRONEUSNICKNAME(client, nick) (":localhost 432 " + client + " " + nick + " :Erroneus nickname\r\n") // 432
 # define ERR_NICKNAMEINUSE(client, nick) (":localhost 433 " + client + " " + nick + " :Nickname is already in use\r\n") // 433
@@ -80,15 +71,27 @@ ERR_NOSUCHCHANNEL               ERR_TOOMANYCHANNELS
 // 448
 					/* Other default message */
 
+# define NB_CLIENTS 100
+
 # define KICKED(sender, channel, nick, reason) (":" + sender + " KICK #" + channel + " " + nick + " :" + reason + "\r\n")
-# define PART(nick, channel, reason) (":" + nick + " PART " + channel + " " + nick + " :" + reason + "\r\n")
+# define PART(nick, channel, reason) (":" + nick + " PART #" + channel + " :" + reason + "\r\n")
 # define INVITE(client, nick, channel) (":" + client + " INVITE " + nick + " #" + channel + "\r\n")
 # define MODE(client, channel, mode) (":" + client + " MODE #" + channel + " " + mode + "\r\n")
 # define JOIN(client, channel) (":" + client + " JOIN #" + channel + "\r\n")
 # define PONG(server, token) (server + token) // a voir + tard
 # define QUIT(client, reason) (":" + client + " QUIT :" + reason + "\r\n") // a voir + tard
+# define PRIVMSG(nick, ClientUser, message) (":" + nick + " PRIVMSG " + ClientUser + " " + message + "\r\n")
+# define HELPER "\nBot : BotFeur\r\n"
+# define HELP_MESSAGE "\nIn order :\n\n\
+PASS <password>\n\
+NICK <nickname>\n\
+USER <username> 0 * :<realname> Exemple : USER guest 0 * :Bart Simpson\n\r\n"
 
+/* other */
 
+# define IRC_WELCOME "--- [ Welcome to IRC Serve ] ---\n\r\n"
+# define START	  "\033[1;35m[IRC SERVER]\033[0;0m Mbouaza & Mdoumi : Waiting connexion ..."
+# define WELCOME  "Welcome to ft_irc server\r\n"
 
 // Colors //
 
