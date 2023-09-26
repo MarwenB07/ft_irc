@@ -25,6 +25,7 @@ SRC =	ft_irc.cpp \
 		Commande/Kick.cpp \
 		Commande/Find.cpp \
 		Commande/Quit.cpp \
+		Commande/Names.cpp \
 		User/User.cpp \
 		Channel/Channel.cpp 
 #

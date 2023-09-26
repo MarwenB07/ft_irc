@@ -318,7 +318,9 @@ int Server::StartServer( void )
 						continue;
 					}
 					message = buffer;
-
+					std::cout << "PASS = " << itUser->second->getPasswordStatus() << std::endl;
+					std::cout << "NICK = " << itUser->second->getNickStatus() << std::endl;
+					std::cout << "USER = " << itUser->second->getUserStatus() << std::endl;
 					std::cout << buffer << std::endl;
 					if (message.find("\n") == std::string::npos)
 					{

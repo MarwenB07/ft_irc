@@ -26,7 +26,7 @@ int Server::NickStep(std::string message, int returner, User *user)
 
 		user->MakeTrue("NICK");
 		user->CompleteUser(message.c_str() + 5, user->getUsername());
-		if (user->getNickStatus() == true && getPass() != getPassword())
+		if (user->getUserStatus() == true && getPass() != getPassword())
 			return (-1);
 		AddUserNickList(user->getNickname());
 	}

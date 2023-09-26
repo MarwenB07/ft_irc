@@ -28,18 +28,19 @@ void Server::Topic(User *user, std::map<std::string, Channel *> channel, std::st
 		ActualChannel->second->setChannelTopic("\r\n");
 		ActualChannel->second->setTopicCreationTime();
 		ActualChannel->second->setTopicSeter(user->getNickname());
-		send_msg(user->getClientSocket(), RPL_TOPICWHOTIME(user->getNickname(), ActualChannel->second->getChannelName(), ActualChannel->second->getTopicSeter(), std::to_string(ActualChannel->second->getTopicCreationTime())));
+		sends_msg(user->getClientSocket(), RPL_TOPICWHOTIME(user->getNickname(), ActualChannel->second->getChannelName(), ActualChannel->second->getTopicSeter(), std::to_string(ActualChannel->second->getTopicCreationTime())), ActualChannel->second->getChannelAuthorized(), 0);
 	}
 	else if (split_list.size() >= 3 && word.find(":") < 2)
 	{
-		word = takeMessage(line);
-		word.erase(0, 1);
+		std::string newWord = line.c_str() + 1;
+		word = takeMessage(newWord + " ");
+		std::cout << word << std::endl;
 		if (word == "NONE")
 			ActualChannel->second->setChannelTopic("\r\n");
 		else
 			ActualChannel->second->setChannelTopic(word.append("\r\n"));
 		ActualChannel->second->setTopicCreationTime();
 		ActualChannel->second->setTopicSeter(user->getNickname());
-		send_msg(user->getClientSocket(), RPL_TOPICWHOTIME(user->getNickname(), ActualChannel->second->getChannelName(), ActualChannel->second->getTopicSeter(), std::to_string(ActualChannel->second->getTopicCreationTime())));
+		sends_msg(user->getClientSocket(), RPL_TOPICWHOTIME(user->getNickname(), ActualChannel->second->getChannelName(), ActualChannel->second->getTopicSeter(), std::to_string(ActualChannel->second->getTopicCreationTime())), ActualChannel->second->getChannelAuthorized(), 0);
 	}
 }

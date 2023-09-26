@@ -55,6 +55,8 @@ void Server::ExectuteIrcCmd(int socket, std::string message, std::map<std::strin
 			send_msg(socket, ERR_ALREADYREGISTERED(use->second->getNickname()));
 		else if (cmd == 11)
 			send_msg(socket, HELPER);
+		else if (cmd == 12)
+			Names();
 		else if (cmd == -1)		
 			send_msg(socket, INVALIDE);
 		++it;

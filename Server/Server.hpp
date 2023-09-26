@@ -125,6 +125,10 @@ class Server
 
 		void Topic(User *user, std::map<std::string, Channel *> channel, std::string line);
 
+		// NAMES //
+
+		void Names();
+
 		// Execute //
 
 		void ExectuteIrcCmd(int socket, std::string message, std::map<std::string, Channel *> channel);
