@@ -1,6 +1,6 @@
 mika :
 
-NAMES 
+NAMES
 page wiki probleme
 
 marwen :
@@ -22,8 +22,6 @@ Le crash une fois sur deux apres avoir eu le message bad password : insh'Allah
 
 kick line + 1 reason
 
-check 
+check
 
 kick hors truc c terrible
-
-caca
