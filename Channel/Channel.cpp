@@ -85,21 +85,13 @@ void Channel::SendTopic(User *user)
 	send_msg(user->getClientSocket(), RPL_TOPICWHOTIME(user->getNickname(), getChannelName(), getTopicSeter(), std::to_string(getTopicCreationTime())));
 }
 
-void Channel:: KickUser(User *user, User *sender, std::string reason, int c)
+void Channel:: KickUser(User *user, User *sender, std::string reason)
 {
 	if (VerifVector(_operator_list, user) == true)
 		_operator_list.erase(std::remove(_operator_list.begin(), _operator_list.end(), user), _operator_list.end());
 	_authorized.erase(std::remove(_authorized.begin(), _authorized.end(), user), _authorized.end());
-	if (c == 0)
-	{
-		send_msg(sender->getClientSocket(), KICKED(sender->getNickname(), getChannelName(), user->getNickname(), reason));
-		send_msg(user->getClientSocket(), KICKED(sender->getNickname(), getChannelName(), user->getNickname(), reason));
-	}
-	else
-	{
-		send_msg(sender->getClientSocket(), KICKED(sender->getNickname(), getChannelName(), user->getNickname(), reason.erase(0, 1)));
-		send_msg(user->getClientSocket(), KICKED(sender->getNickname(), getChannelName(), user->getNickname(), reason.erase(0, 1)));
-	}
+	send_msg(sender->getClientSocket(), KICKED(sender->getNickname(), getChannelName(), user->getNickname(), reason));
+	send_msg(user->getClientSocket(), KICKED(sender->getNickname(), getChannelName(), user->getNickname(), reason));
 }
 
 void Channel::PartChannel(User *user)

@@ -77,9 +77,6 @@ int Server::tryNick(std::vector<std::string> str, std::map<int, User *> user, in
 	std::string nickname;
 	std::string none_first = "#:";
 	std::string unauthorised = " ";
-
-	if (str.size() != 2)
-		return (-1);
 	
 	std::vector<std::string>::iterator sit = str.begin();
 	
@@ -87,6 +84,9 @@ int Server::tryNick(std::vector<std::string> str, std::map<int, User *> user, in
 	
 	if (*sit != "NICK")
 		return (-1);
+
+	if (str.size() < 2)
+		return (send_msg(socket, ERR_NONICKNAMEGIVEN(std::to_string(socket))), -1);
 	
 	++sit;
 	nickname = *sit;
@@ -121,8 +121,6 @@ int Server::tryUser(std::vector<std::string> str, int socket, User *user)
 	std::string unauthorised = " \t\r\f\v";
 	std::string username;
 
-
-
 	if (str.size() < 1)
 		return (-1);
 
@@ -130,8 +128,6 @@ int Server::tryUser(std::vector<std::string> str, int socket, User *user)
 
 	if (*it != "USER")
 		return (-1);
-	else if (user->getNickStatus() == false)
-		return (send_msg(socket, ERR_NONICKNAMEGIVEN(std::to_string(socket))), -1);
 	else if (str.size() != 6)
 		return (send_msg(socket, ERR_NEEDMOREPARAMS(user->getNickname(), (*it))), -1);
 	++it;
@@ -255,12 +251,13 @@ int Server::StartServer( void )
 	int cfd;
 	int maxSocket = NB_CLIENTS;
 	int returner = 0;
+	int returner2 = 0;
 
 	char buffer[513];
 
 	while (true) // ptetre mettre ctrl c 
 	{
-		signal(SIGPIPE, SIG_IGN);
+		//signal(SIGPIPE, SIG_IGN);
 
         fd_set currentfd = readfds;
 
@@ -304,11 +301,11 @@ int Server::StartServer( void )
         	    if (FD_ISSET(clientSocket, &currentfd)) 
 				{
         	        _bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+					std::cout << buffer;
 					if (_bytesRead > 512)
 					{
 						cleanBuffer(buffer, 513);
 						ChannelEraserInfo(itUser->second);
-						//std::cout << "oui" << std::endl;
 						_Pass = "";
 						if (itUser->second->getUserStatus() == true)
 							eraseUserInMap(clientSocket);
@@ -318,10 +315,8 @@ int Server::StartServer( void )
 						continue;
 					}
 					message = buffer;
-					std::cout << "PASS = " << itUser->second->getPasswordStatus() << std::endl;
-					std::cout << "NICK = " << itUser->second->getNickStatus() << std::endl;
-					std::cout << "USER = " << itUser->second->getUserStatus() << std::endl;
-					std::cout << buffer << std::endl;
+					if (message == "QUIT :Leaving\r\n" || message == "QUIT :Leaving\n")
+						Quit(itUser->second, message);
 					if (message.find("\n") == std::string::npos)
 					{
 						_old.append(message);
@@ -336,21 +331,25 @@ int Server::StartServer( void )
 					}
 					_message = message;
 					_splited = s_split(message);
-					if (itUser->second->getNickStatus() == false)
+					if (itUser->second->getNickStatus() == false && _bytesRead > 0)
 						returner = tryNick(_splited, _users, clientSocket);
-					else if (itUser->second->getNickStatus() == true && itUser->second->getUserStatus() == false)
-						returner = tryUser(_splited, clientSocket, itUser->second);
+					if (itUser->second->getUserStatus() == false && _bytesRead > 0)
+						returner2 = tryUser(_splited, clientSocket, itUser->second);
         	        if (_bytesRead <= 0) 
 					{
 						std::cerr << "client[" << clientSocket <<"] was disconnected ... 😞"<< std::endl;
         	            close(clientSocket);
 						_Pass = "";
+						_old = "";
 						DownNbClients();
 						setClientConnected(-1);
-						_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
-						_users_class_list.erase(std::remove(_users_class_list.begin(), _users_class_list.end(), itUser->second), _users_class_list.end());
+						if (itUser->second->getNickStatus() == true)
+							_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
 						if (itUser->second->getUserStatus() == true)
+						{
 							eraseUserInMap(clientSocket);
+							_users_class_list.erase(std::remove(_users_class_list.begin(), _users_class_list.end(), itUser->second), _users_class_list.end());
+						}
         	            _clients.erase(std::remove(_clients.begin(), _clients.end(), clientSocket), _clients.end());
 						FD_CLR(clientSocket, &readfds);
 						break;
@@ -364,24 +363,32 @@ int Server::StartServer( void )
 							if (NickStep(message, returner, itUser->second) == -1)
 							{
 								_Pass = "";
+								_old = "";
 								send_msg(itUser->first, ERR_PASSWDMISMATCH(itUser->second->getNickname()));
 								close(itUser->first);
+								setClientConnected(-1);
 								DownNbClients();
 								_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
+								_users_class_list.erase(std::remove(_users_class_list.begin(), _users_class_list.end(), itUser->second), _users_class_list.end());
+								_clients.erase(std::remove(_clients.begin(), _clients.end(), clientSocket), _clients.end());
 								eraseUserInMap(clientSocket);
 								FD_CLR(clientSocket, &readfds);
 								continue;
 							}
 						}
-						else if (returner > 0 && itUser->second->getUserStatus() == false && itUser->second->getNickStatus() == true)
+						else if (returner2 > 0 && itUser->second->getUserStatus() == false)
 						{
-							if (UserStep(clientSocket, returner, itUser->second) == -1)
+							if (UserStep(clientSocket, returner2, itUser->second) == -1)
 							{
 								_Pass = "";
+								_old = "";
 								send_msg(itUser->first, ERR_PASSWDMISMATCH(itUser->second->getNickname()));
 								close(itUser->first);
+								setClientConnected(-1);
 								DownNbClients();
 								_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
+								_users_class_list.erase(std::remove(_users_class_list.begin(), _users_class_list.end(), itUser->second), _users_class_list.end());
+								_clients.erase(std::remove(_clients.begin(), _clients.end(), clientSocket), _clients.end());
 								eraseUserInMap(clientSocket);
 								FD_CLR(clientSocket, &readfds);
 								continue;
@@ -389,9 +396,8 @@ int Server::StartServer( void )
 						}
 						else if (message == "HELPER\r\n" || message == "HELPER\n")
 							send_msg(clientSocket, HELP_MESSAGE);
-						//else
-						//	send_msg(clientSocket, ERR_USELESS);
 						returner = 0;
+						returner2 = 0;
 					}
 					else
 					{
@@ -408,6 +414,8 @@ int Server::StartServer( void )
         	        }
 					cleanBuffer(buffer, 513);
 					_splited.clear();
+					FD_CLR(clientSocket, &readfds);
+					FD_SET(clientSocket, &readfds);
         	    }
         	}
 		}

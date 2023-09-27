@@ -40,13 +40,10 @@ void Server::Part(User *user, std::map<std::string, Channel *> channel, std::str
 
 	if (line == "PART")
 		return (send_msg(user->getClientSocket(), ERR_NEEDMOREPARAMS(user->getNickname(), line)));
-	else if ((split.size() == 3 && line.find(":") != std::string::npos) || split.size() == 2)
+	else if (split.size() == 3 || split.size() == 2)
 	{
 		if (split.size() == 3)
-		{
-			reason = takeMessage(line + " ");
-			reason.erase(0, 1);
-		}
+			reason = takeMessage(line + " ", 2);
 		for (std::vector<std::string>::iterator it = channelname.begin(); it != channelname.end(); ++it)
 		{
 			word = *it;

@@ -27,23 +27,20 @@ void Server::Invite(User *user, std::map<std::string, Channel *> channel, std::s
 	std::vector<std::string> split_list = s_split(line);
 	std::vector<std::string>::iterator list = split_list.begin();
 
-	if (line == "INVITE\r\n")
+	if (line == "INVITE")
 		SendInvitedChannel(user, _channel_class_list);
 	else if (split_list.size() != 3)
 		return (send_msg(user->getClientSocket(), ERR_NEEDMOREPARAMS(user->getNickname(), *list)));
-	
 	++list;
 	word = *list;
-
 	if (checkUserExist(word) == false)
-		return ;
-	
+		return (send_msg(user->getClientSocket(), ERR_NOSUCHNICK(user->getNickname(), word)));
 	User *use = FindUser(word);
 
 	++list;
 	word = *list;
 	if (ChannelAlreadyExists(word, channel, 0) == false)
-		return (send_msg(user->getClientSocket(), ERR_NOSUCHCHANNEL(user->getNickname(), word)));
+		return (send_msg(user->getClientSocket(), ERR_NOSUCHCHANNEL(user->getNickname(), word.erase(0, 1))));
 
 	std::map<std::string, Channel *>::iterator theChannel = channel.find(word.c_str() + 1);
 

@@ -11,7 +11,6 @@ static void ExecBot(int sockfd, std::string password)
 	char buffer[513];
 
 	fd_set readfds;
-	fd_set currentfd = readfds;
 
 	while (1)
 	{

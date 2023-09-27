@@ -41,11 +41,11 @@
 
 // CMD //
 
-# define INVALIDE "Invalide commande\r\n"
+# define INVALIDE "Invalide commande\r\n" 
 
 // PRIVMSG //
 
-# define PRIVMSG_ERR "Invalide commande PRIVMSG\r\n"
+# define PRIVMSG_ERR "Invalide commande PRIVMSG\r\n" 
 
 
 // class //
@@ -77,7 +77,7 @@ class Server
 		std::string _Pass;
 		std::string _message;
 		std::string _serverName;
-
+		
 		std::map<int, User *> _users;
 		std::map<std::string, Channel *> _channel;
 		std::vector<int> _clients;
@@ -94,7 +94,7 @@ class Server
 		int tryUser(std::vector<std::string> str, int socket, User *user);
 		std::vector<std::string> s_split(std::string str);
 		std::vector<std::string> newSplit(std::string s, std::string c);
-
+		
 		// semi-usefull //
 
 		void cleanBuffer(char *buffer, int len);
@@ -127,7 +127,7 @@ class Server
 
 		// NAMES //
 
-		void Names(User *user);
+		void Names(User *user, std::map<std::string, Channel *> channel, std::string line);
 
 		// Execute //
 

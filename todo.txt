@@ -1,27 +1,2 @@
 mika :
-
-NAMES
 page wiki probleme
-
-marwen :
-
-Le password qui se reset pas
-
-pas de message d'erreur d'INVITE
-INVITE envoie le message d'invite dans le channel ?
-
-PRIVMSG erreur
-
-(LES DEUX POINTS)
-
-LES : dans TOPIC
-
-KICK marche pas sans message
-
-Le crash une fois sur deux apres avoir eu le message bad password : insh'Allah
-
-kick line + 1 reason
-
-check
-
-kick hors truc c terrible

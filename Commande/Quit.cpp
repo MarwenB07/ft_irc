@@ -12,7 +12,7 @@ void Server::Quit(User *user, std::string line)
 	{
 		++it;
 		if ((*it).find(":") < 2)
-			reason = takeMessage(line);
+			reason = takeMessage(line, 1);
 	}
 	if (line == "QUIT" || (split.size() > 1 && (*it).find(":") < 2))
 		;

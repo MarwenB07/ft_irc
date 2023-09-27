@@ -108,7 +108,7 @@ class Channel
 
 		// Kick //
 
-		void KickUser(User *user, User *sender, std::string reason, int c);
+		void KickUser(User *user, User *sender, std::string reason);
 
 		// Part //
 
