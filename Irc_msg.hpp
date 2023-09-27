@@ -49,8 +49,9 @@ l_o_t_m = line of the motd
 
 # define RPL_ENDOFNAMES(client, channel) (":localhost 366 " + client + " #" + channel + " :End of /NAMES list\r\n") // 366
 # define ERR_NOSUCHNICK(client, nickname) (":localhost 401 " + client + " " + nickname + " :No such nick/channel\r\n") // 401
-# define ERR_NOSUCHCHANNEL(client, channel) (":localhost 403 " + client + " " + channel + " :No such channel\r\n") // 403
-# define ERR_NOTEXTTOSEND(client) (":localhost 412 " + client +  " :No text to send\r\n")
+# define ERR_NOSUCHCHANNEL(client, channel) (":localhost 403 " + client + " #" + channel + " :No such channel\r\n") // 403
+# define ERR_CANNOTSENDTOCHAN(client, channel) (":localhost 404 " + client + " #" + channel + " :Cannot send to channel\r\n") // 404
+# define ERR_NOTEXTTOSEND(client) (":localhost 412 " + client +  " :No text to send\r\n") // 412
 # define ERR_NONICKNAMEGIVEN(client) (":localhost 431 " + client + " :No nickname given\r\n") // 431
 # define ERR_ERRONEUSNICKNAME(client, nick) (":localhost 432 " + client + " " + nick + " :Erroneus nickname\r\n") // 432
 # define ERR_NICKNAMEINUSE(client, nick) (":localhost 433 " + client + " " + nick + " :Nickname is already in use\r\n") // 433
@@ -122,7 +123,7 @@ KICK -
 
 // function //
 
-std::string takeMessage(std::string message);
+std::string takeMessage(std::string message, int stop);
 
 void send_msg(int socket, std::string message);
 
