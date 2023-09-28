@@ -36,19 +36,15 @@ void Server::Kick(User *user, std::map<std::string, Channel *> channel, std::str
 		return (send_msg(user->getClientSocket(), ERR_CHANOPRIVSNEEDED(user->getNickname(), word)));
 	if (split_list.size() == 3)
 	{
-		ActualChannel->second->KickUser(use, user, "", 0);
+		ActualChannel->second->KickUser(use, user, "");
 		return;
 	}
-	
 	++list;
 	word = *list;
-
-	if (split_list.size() == 4 && word == ":")
-		return ;
-	else if (split_list.size() >= 4 && word.find(":") < 2)
+	if (split_list.size() >= 4)
 	{
-		word = takeMessage(line);
-		ActualChannel->second->KickUser(use, user, word, 1);
+		word = takeMessage(line + " ", 3);
+		ActualChannel->second->KickUser(use, user, word);
 		return ;
 	}
 	return ;

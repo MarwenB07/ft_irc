@@ -56,7 +56,7 @@ void Server::ExectuteIrcCmd(int socket, std::string message, std::map<std::strin
 		else if (cmd == 11)
 			send_msg(socket, HELPER);
 		else if (cmd == 12)
-			Names();
+			Names(use->second, channel, line);
 		else if (cmd == -1)		
 			send_msg(socket, INVALIDE);
 		++it;

@@ -82,12 +82,11 @@ void Server::Ctrl_D_Join(char *buffer, std::string oldMess, std::string newMess)
 
 void Server::WelcomeToIrc(int socket, User *user)
 {
-	std::string time = "010205";
 	std::string unknow = "inconnue";
 
 	send_msg(socket, RPL_WELCOME(user->getNickname(), getServerName(), user->getUsername(), user->getUserHost())); // 001
 	send_msg(socket, RPL_YOURHOST(user->getNickname(), getServerName(), getServerVersion())); // 002
-	send_msg(socket, RPL_CREATED(user->getNickname(), time)); // 003
+	send_msg(socket, RPL_CREATED(user->getNickname(), std::to_string(_initialTime))); // 003
 	send_msg(socket, RPL_MYINFO(user->getNickname(), getServerName(), getServerVersion(), unknow, unknow, unknow)); // 004
 	send_msg(socket, RPL_ISUPPORT(user->getNickname(), unknow)); // 005
 

@@ -127,7 +127,7 @@ class Server
 
 		// NAMES //
 
-		void Names();
+		void Names(User *user, std::map<std::string, Channel *> channel, std::string line);
 
 		// Execute //
 

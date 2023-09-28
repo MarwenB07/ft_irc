@@ -46,8 +46,10 @@ l_o_t_m = line of the motd
 # define RPL_ENDOFINVITELIST(client) (":localhost 337 " + client + " :End of /INVITE list\r\n") // 337
 # define RPL_INVITING(client, nick, channel) (":localhost 341 " + client + " " + nick + " #" + channel + "\r\n") // 341
 # define RPL_NAMREPLY(client, symbol, channel, user) (":localhost 353 " + client + " " + symbol + " #" + channel + " :" + user + " \r\n") // 353
+# define RPL_NAMREPLY2(client, symbol, channel, user) (":localhost 353 " + client + " " + symbol + " " + channel + " :" + user + " \r\n") // 353
 
 # define RPL_ENDOFNAMES(client, channel) (":localhost 366 " + client + " #" + channel + " :End of /NAMES list\r\n") // 366
+# define RPL_ENDOFNAMES2(client, channel) (":localhost 366 " + client + " " + channel + " :End of /NAMES list\r\n") // 366
 # define ERR_NOSUCHNICK(client, nickname) (":localhost 401 " + client + " " + nickname + " :No such nick/channel\r\n") // 401
 # define ERR_NOSUCHCHANNEL(client, channel) (":localhost 403 " + client + " #" + channel + " :No such channel\r\n") // 403
 # define ERR_CANNOTSENDTOCHAN(client, channel) (":localhost 404 " + client + " #" + channel + " :Cannot send to channel\r\n") // 404

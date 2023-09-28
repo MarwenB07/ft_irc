@@ -6,7 +6,7 @@ NAME = IrcBot
 
 CPP = c++
 
-CXXFLAGS = #-Wall -Wextra -Werror -std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 
 # ---- SRC / OBJS ---- #
 

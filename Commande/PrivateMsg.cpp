@@ -25,7 +25,7 @@ std::string takeMessage(std::string message, int stop)
 		sended = message.substr(i, j - (i + 1));
 		return (sended);
 	}
-	return ("NONE")
+	return ("NONE");
 }
 
 std::vector<std::string> Server::catch_nickname(std::vector<std::string> buffer)
@@ -80,7 +80,7 @@ void Server::PrivateMsg(std::map<int, User *> users, std::vector<std::string> bu
 				if (AlreadyInChannel(cuser->second, channel->second) == true)
 					channel->second->SendMsgToChannel(PRIVMSG(cuser->second->getNickname(), first, sended_message), socket);
 				else
-					send_msg(socket, ERR_CANNOTSENDTOCHAN(cuser->second->getNickname(), first)); 
+					send_msg(socket, ERR_CANNOTSENDTOCHAN(cuser->second->getNickname(), first));
 			}
 			else
 				send_msg(socket, ERR_NOSUCHNICK(cuser->second->getNickname(), first)); 
@@ -94,7 +94,7 @@ void Server::PrivateMsg(std::map<int, User *> users, std::vector<std::string> bu
 			if (dst_socket != -1)
 			{
 				std::map<int, User *>::iterator user = users.find(dst_socket);
-					send_msg(dst_socket, PRIVMSG(user_client, user->second->getNickname(), sended_message));
+				send_msg(dst_socket, PRIVMSG(user_client, user->second->getNickname(), sended_message));
 			}
 			else
 				send_msg(socket, ERR_NOSUCHNICK(cuser->second->getNickname(), (*it)));
