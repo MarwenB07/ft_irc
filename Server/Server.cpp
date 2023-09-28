@@ -303,18 +303,8 @@ int Server::StartServer( void )
 					std::cout << _bytesRead << " ? " << buffer;
 					if (_bytesRead > 512)
 					{
-						std::cout << std::endl << "ICI" << std::endl;
-						//cleanBuffer(buffer, 513);
-						//ChannelEraserInfo(itUser->second);
-						//_Pass = "";
-						//if (itUser->second->getUserStatus() == true)
-							//eraseUserInMap(clientSocket);
-						//if (itUser->second->getNickStatus() == true)
-							//_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
-						//_old = "";
-						//continue ;
 						std::cerr << "client[" << clientSocket <<"] was disconnected ... 😞"<< std::endl;
-        	  close(clientSocket);
+        	  			close(clientSocket);
 						_Pass = "";
 						_old = "";
 						DownNbClients();
@@ -331,8 +321,6 @@ int Server::StartServer( void )
 						break;
 					}
 					message = buffer;
-					//if (message == "QUIT :Leaving\r\n" || message == "QUIT :Leaving\n")
-						//Quit(itUser->second, message);
 					if (message.find("\n") == std::string::npos)
 					{
 						_old.append(message);
@@ -351,7 +339,7 @@ int Server::StartServer( void )
 						returner = tryNick(_splited, _users, clientSocket);
 					if (itUser->second->getUserStatus() == false && _bytesRead > 0)
 						returner2 = tryUser(_splited, clientSocket, itUser->second);
-        	if (_bytesRead <= 0)
+        			if (_bytesRead <= 0)
 					{
 						std::cerr << "client[" << clientSocket <<"] was disconnected ... 😞"<< std::endl;
         	            close(clientSocket);

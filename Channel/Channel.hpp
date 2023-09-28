@@ -8,7 +8,6 @@
 // Channel //
 
 # define SUCCESS_JOIN(name) ("You join successfuly the channel #" + name + "\r\n")
-# define JOIN_CHANNEL(name, channel) (":" + name + " JOIN #" + channel + "\r\n")
 # define CREATE_CHANNEL(channel) (":channel " + channel + " successfuly created\r\n")
 
 // ERROR //

@@ -8,7 +8,6 @@ void Server::CreateChannel(User *user, std::string name)
 	else
 	{
 		name.erase(0, 1);
-		send_msg(user->getClientSocket(), JOIN_CHANNEL(user->getNickname(), name));
 		_channel.insert(std::make_pair(name, new Channel(name, user)));
 		std::map<std::string, Channel *>::iterator chan = _channel.find(name);
 		chan->second->AddChannelAuthorized(user);

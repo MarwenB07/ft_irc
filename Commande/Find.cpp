@@ -22,8 +22,6 @@ int Server::FindCmd(std::vector<std::string> message)
 		return (7);
 	else if (*it == "PING")
 		return (8);
-	//else if (*it == "QUIT")
-		//return (9);
 	else if (*it == "PASS" || *it == "NICK" || *it == "USER")
 		return (10);
 	else if (*it == "HELPER")

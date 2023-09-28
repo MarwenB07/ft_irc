@@ -49,8 +49,6 @@ void Server::ExectuteIrcCmd(int socket, std::string message, std::map<std::strin
 			Mode(use->second, channel, line);
 		else if (cmd == 8)
 			continue ;
-		//else if (cmd == 9)
-			//Quit(use->second, line);
 		else if (cmd == 10)
 			send_msg(socket, ERR_ALREADYREGISTERED(use->second->getNickname()));
 		else if (cmd == 11)

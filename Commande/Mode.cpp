@@ -161,7 +161,7 @@ void Server::Mode(User *user, std::map<std::string, Channel *> channel, std::str
 	std::vector<std::string>::iterator list = split_list.begin();
 
 	if (line == "MODE")
-		return ; // caca
+		return (send_msg(user->getClientSocket(), ERR_NEEDMOREPARAMS(user->getNickname(), (*list))));
 
 	++list;
 	word = *list;

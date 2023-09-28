@@ -59,10 +59,7 @@ void Channel::AddToChannel(User *user, std::string name)
 {
 	// check client limit //
 	// supp les invited //
-	for (std::vector<User *>::iterator it = _authorized.begin(); it != _authorized.end(); ++it)
-		if (user->getClientSocket() != (*it)->getClientSocket())
-			send_msg((*it)->getClientSocket(), JOIN_CHANNEL(user->getNickname(), name));
-	send_msg(user->getClientSocket(), JOIN_CHANNEL(user->getNickname(), _name));
+	(void)name;
 	SendTopic(user);
 	setChannelSizeofClients(getChannelSizeofClients() + 1);
 }
