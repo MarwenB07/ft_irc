@@ -47,7 +47,7 @@ void Server::eraseUserInMap(int socket)
 {
 	std::map<int, User *>::iterator it = _users.find(socket);
 
-	if (it != _users.end()) 
+	if (it != _users.end())
 	{
         delete it->second;
         _users.erase(it);
@@ -60,7 +60,7 @@ void Server::eraseChanInMap(std::string chan)
 {
 	std::map<std::string, Channel *>::iterator it = _channel.find(chan);
 
-	if (it != _channel.end()) 
+	if (it != _channel.end())
 	{
 		it->second->ChannelDeleteAll();
         delete it->second;
@@ -77,22 +77,21 @@ int Server::tryNick(std::vector<std::string> str, std::map<int, User *> user, in
 	std::string nickname;
 	std::string none_first = "#:";
 	std::string unauthorised = " ";
-	
 	std::vector<std::string>::iterator sit = str.begin();
-	
+
 	std::map<int, User *>::iterator it;
-	
+
 	if (*sit != "NICK")
 		return (-1);
 
 	if (str.size() < 2)
 		return (send_msg(socket, ERR_NONICKNAMEGIVEN(std::to_string(socket))), -1);
-	
+
 	++sit;
 	nickname = *sit;
-	
+
 	// note : verifier les non-ascii ( #$@^&* etc ... ) //
-	
+
 	if (nickname.length() > 9 || nickname.length() < 3)
 		return(send_msg(socket, ERR_NICKLENGTH), 2);
 	for (int i = 0; none_first.c_str()[i]; i++)
@@ -155,7 +154,7 @@ int Server::tryUser(std::vector<std::string> str, int socket, User *user)
 
 	++it;
 	username = *it;
-	
+
 	for (unsigned int i = 0; i <= username.length(); i++)
 	{
 		for (unsigned int i = 'a'; i <= 'z'; i++)
@@ -255,7 +254,7 @@ int Server::StartServer( void )
 
 	char buffer[513];
 
-	while (true) // ptetre mettre ctrl c 
+	while (true) // ptetre mettre ctrl c
 	{
 		//signal(SIGPIPE, SIG_IGN);
 
@@ -268,7 +267,7 @@ int Server::StartServer( void )
         }
 		else
 		{
-        	if (FD_ISSET(_servSocket, &currentfd)) 
+        	if (FD_ISSET(_servSocket, &currentfd))
 			{
         	    clientAddrLen = sizeof(clientAddr);
         	    cfd = accept(_servSocket, (struct sockaddr*)&clientAddr, &clientAddrLen);
@@ -298,25 +297,42 @@ int Server::StartServer( void )
 			{
     			int clientSocket = *it;
 				std::map<int, User *>::iterator itUser = _users.find(clientSocket);
-        	    if (FD_ISSET(clientSocket, &currentfd)) 
+        	    if (FD_ISSET(clientSocket, &currentfd))
 				{
         	        _bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
-					std::cout << buffer;
+					std::cout << _bytesRead << " ? " << buffer;
 					if (_bytesRead > 512)
 					{
-						cleanBuffer(buffer, 513);
-						ChannelEraserInfo(itUser->second);
+						std::cout << std::endl << "ICI" << std::endl;
+						//cleanBuffer(buffer, 513);
+						//ChannelEraserInfo(itUser->second);
+						//_Pass = "";
+						//if (itUser->second->getUserStatus() == true)
+							//eraseUserInMap(clientSocket);
+						//if (itUser->second->getNickStatus() == true)
+							//_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
+						//_old = "";
+						//continue ;
+						std::cerr << "client[" << clientSocket <<"] was disconnected ... 😞"<< std::endl;
+        	  close(clientSocket);
 						_Pass = "";
-						if (itUser->second->getUserStatus() == true)
-							eraseUserInMap(clientSocket);
+						_old = "";
+						DownNbClients();
+						setClientConnected(-1);
 						if (itUser->second->getNickStatus() == true)
 							_users_nick_list.erase(std::remove(_users_nick_list.begin(), _users_nick_list.end(), itUser->second->getNickname()), _users_nick_list.end());
-						_old = "";
-						continue;
+						if (itUser->second->getUserStatus() == true)
+						{
+							eraseUserInMap(clientSocket);
+							_users_class_list.erase(std::remove(_users_class_list.begin(), _users_class_list.end(), itUser->second), _users_class_list.end());
+						}
+        	            _clients.erase(std::remove(_clients.begin(), _clients.end(), clientSocket), _clients.end());
+						FD_CLR(clientSocket, &readfds);
+						break;
 					}
 					message = buffer;
-					if (message == "QUIT :Leaving\r\n" || message == "QUIT :Leaving\n")
-						Quit(itUser->second, message);
+					//if (message == "QUIT :Leaving\r\n" || message == "QUIT :Leaving\n")
+						//Quit(itUser->second, message);
 					if (message.find("\n") == std::string::npos)
 					{
 						_old.append(message);
@@ -335,7 +351,7 @@ int Server::StartServer( void )
 						returner = tryNick(_splited, _users, clientSocket);
 					if (itUser->second->getUserStatus() == false && _bytesRead > 0)
 						returner2 = tryUser(_splited, clientSocket, itUser->second);
-        	        if (_bytesRead <= 0) 
+        	if (_bytesRead <= 0)
 					{
 						std::cerr << "client[" << clientSocket <<"] was disconnected ... 😞"<< std::endl;
         	            close(clientSocket);
