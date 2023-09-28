@@ -30,9 +30,8 @@ Channel::Channel( Channel const & src )
 
 Channel& Channel::operator=(const Channel& rhs)
 {
-    if (this == &rhs) {
+    if (this == &rhs)
         return *this;
-    }
 
     _name = rhs.getChannelName();
     _password = rhs.getChannelPass();
@@ -60,7 +59,6 @@ void Channel::AddToChannel(User *user, std::string name)
 {
 	// check client limit //
 	// supp les invited //
-
 	for (std::vector<User *>::iterator it = _authorized.begin(); it != _authorized.end(); ++it)
 		if (user->getClientSocket() != (*it)->getClientSocket())
 			send_msg((*it)->getClientSocket(), JOIN_CHANNEL(user->getNickname(), name));

@@ -77,7 +77,6 @@ int Server::tryNick(std::vector<std::string> str, std::map<int, User *> user, in
 	std::string nickname;
 	std::string none_first = "#:";
 	std::string unauthorised = " ";
-
 	std::vector<std::string>::iterator sit = str.begin();
 
 	std::map<int, User *>::iterator it;
@@ -315,7 +314,7 @@ int Server::StartServer( void )
 						//_old = "";
 						//continue ;
 						std::cerr << "client[" << clientSocket <<"] was disconnected ... 😞"<< std::endl;
-        	            close(clientSocket);
+        	  close(clientSocket);
 						_Pass = "";
 						_old = "";
 						DownNbClients();
@@ -352,7 +351,7 @@ int Server::StartServer( void )
 						returner = tryNick(_splited, _users, clientSocket);
 					if (itUser->second->getUserStatus() == false && _bytesRead > 0)
 						returner2 = tryUser(_splited, clientSocket, itUser->second);
-        	        if (_bytesRead <= 0)
+        	if (_bytesRead <= 0)
 					{
 						std::cerr << "client[" << clientSocket <<"] was disconnected ... 😞"<< std::endl;
         	            close(clientSocket);
