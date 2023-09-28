@@ -332,9 +332,8 @@ int Server::StartServer( void )
 						break;
 					}
 					message = buffer;
-					std::cout << "Message :" << message << std::endl;
-					if (message == "QUIT :Leaving\r\n" || message == "QUIT :Leaving\n")
-						Quit(itUser->second, message);
+					//if (message == "QUIT :Leaving\r\n" || message == "QUIT :Leaving\n")
+						//Quit(itUser->second, message);
 					if (message.find("\n") == std::string::npos)
 					{
 						_old.append(message);
