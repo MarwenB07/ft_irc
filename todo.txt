@@ -1,2 +1,8 @@
 mika :
 page wiki probleme
+
+(lancer irc sans mdp ?)
+
+Quand buffer > 513, envoie les 513 characters en une commeande et en renvoie une avec ceux qui restent mais ca bug
+
+QUIT il est cringe 
